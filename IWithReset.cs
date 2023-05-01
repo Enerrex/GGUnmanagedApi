@@ -1,4 +1,4 @@
-﻿namespace Common.UnmanagedApi
+﻿namespace GGUnmanagedApi
 {
     public interface IWithReset
     {
