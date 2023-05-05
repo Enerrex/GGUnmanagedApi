@@ -1,4 +1,4 @@
-﻿namespace GGUnmanagedApi
+﻿namespace GGUnmanagedApi.Core
 {
     public interface IWithReset
     {

@@ -1,4 +1,4 @@
-﻿namespace GGUnmanagedApi
+﻿namespace GGUnmanagedApi.API.Iterator
 {
     public interface IUnmanagedIterator<TNode> where TNode : unmanaged
     {

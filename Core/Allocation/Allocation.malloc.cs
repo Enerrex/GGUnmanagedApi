@@ -3,9 +3,9 @@ using System.Runtime.InteropServices;
 
 namespace GGUnmanagedApi.Core
 {
-    public static class Allocation
+    public static partial class Allocation
     {
-        public static IntPtr Malloc(long size, int alignment)
+        private static IntPtr Malloc(long size, int alignment)
         {
             if (size <= 0)
             {
@@ -28,15 +28,16 @@ namespace GGUnmanagedApi.Core
 
             return aligned_memory_pointer;
         }
-
-        public static void Free(IntPtr memoryPointer)
+        
+        private static IntPtr Malloc<TUnmanaged>(long size) where TUnmanaged : unmanaged
         {
-            if (memoryPointer == IntPtr.Zero)
+            if (size <= 0)
             {
-                throw new ArgumentException("Cannot free a zero memory pointer.", "memoryPointer");
+                throw new ArgumentOutOfRangeException("size", "Size must be greater than zero.");
             }
 
-            Marshal.FreeHGlobal(memoryPointer);
+            var alignment = AlignOf<TUnmanaged>();
+            return Malloc(size, alignment);
         }
     }
 }

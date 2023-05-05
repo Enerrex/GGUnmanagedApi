@@ -1,4 +1,4 @@
-namespace GGUnmanagedApi
+namespace GGUnmanagedApi.Core.Iterator
 {
 
     public readonly struct MoveNextResult
