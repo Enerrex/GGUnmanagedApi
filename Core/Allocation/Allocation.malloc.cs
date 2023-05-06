@@ -31,11 +31,6 @@ namespace GGUnmanagedApi.Core
         
         private static IntPtr Malloc<TUnmanaged>(long size) where TUnmanaged : unmanaged
         {
-            if (size <= 0)
-            {
-                throw new ArgumentOutOfRangeException("size", "Size must be greater than zero.");
-            }
-
             var alignment = AlignOf<TUnmanaged>();
             return Malloc(size, alignment);
         }

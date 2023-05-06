@@ -1,21 +1,17 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using GGUnmanagedApi.Core.Pointer;
 
 namespace GGUnmanagedApi.Core
 {
     public static unsafe partial class Allocation
     {
-        private static void Delete<T>
+        public static void Delete<T>
         (
-            Owner<T> ownerPointer
+            AllocationOwner<T> allocationOwner
         ) where T : unmanaged
         {
-            if (ownerPointer == IntPtr.Zero)
-            {
-                throw new ArgumentException("Cannot free a zero memory pointer.", "ownerPointer");
-            }
-
-            Marshal.FreeHGlobal(ownerPointer);
+            Free(allocationOwner);
         }
     }
 }

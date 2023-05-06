@@ -7,11 +7,14 @@
         <Title>GG Unmanaged API</Title>
         <Version>1.0.3</Version>
         <LangVersion>8</LangVersion>
-        <TargetFrameworks>net40;net7.0;netstandard2.0</TargetFrameworks>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <TargetFrameworks>net470;netstandard2.1</TargetFrameworks>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="MSTest" Version="3.0.2" />
+        <PackageReference Include="MSTest.TestAdapter" Version="3.0.2" />
+        <PackageReference Include="MSTest.TestFramework" Version="3.0.2" />
         <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     </ItemGroup>
 

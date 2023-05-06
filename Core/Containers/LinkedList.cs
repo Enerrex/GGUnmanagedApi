@@ -1,4 +1,5 @@
 ﻿using System;
+using GGUnmanagedApi.Core.Pointer;
 
 namespace GGUnmanagedApi.Core.Containers
 {
@@ -20,17 +21,17 @@ namespace GGUnmanagedApi.Core.Containers
         )
         {
             Count += 1;
-            var pointer = Allocation.AllocateNew<LinkedNode<T>>();
-            pointer.Pointer->Value = valueIn;
+            AllocationOwner<LinkedNode<T>> allocation_owner = Allocation.AllocateNew<LinkedNode<T>>();
+            allocation_owner.Pointer->Value = valueIn;
             if (Head == null)
             {
-                Head = pointer;
-                Tail = pointer;
+                Head = allocation_owner;
+                Tail = allocation_owner;
                 return;
             }
 
-            Tail->Next = pointer;
-            Tail = pointer;
+            Tail->Next = allocation_owner;
+            Tail = allocation_owner;
         }
 
         public void AddNode
@@ -70,11 +71,6 @@ namespace GGUnmanagedApi.Core.Containers
 
             Head = null;
             Tail = null;
-        }
-        
-        public override string ToString()
-        {
-            return $"({string.Join(",", GetNativeArray().ToArray())})";
         }
     }
 }

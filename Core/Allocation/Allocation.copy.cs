@@ -1,4 +1,5 @@
 ﻿using System;
+using GGUnmanagedApi.Core.Pointer;
 
 namespace GGUnmanagedApi.Core
 {
@@ -7,44 +8,81 @@ namespace GGUnmanagedApi.Core
         /// <summary>
         ///     Copies the memory from the source array to a new array of the target size.
         /// </summary>
-        /// <param name="copiedArray">The source array.</param>
-        /// <param name="length">The length of the source array.</param>
-        /// <param name="targetLength">The length of the target array.</param>
+        /// <param name="sourcePointer">The source array.</param>
+        /// <param name="sourceLength">The sourceLength of the source array.</param>
+        /// <param name="targetLength">The sourceLength of the target array.</param>
         /// <typeparam name="TUnmanaged">The type of the array.</typeparam>
-        /// <returns>A Owner object to the target array.</returns>
-        /// <exception cref="ArgumentException">Thrown when the target length is smaller than the source length.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when the target length or the source length is smaller than 1.</exception>
+        /// <returns>An AllocationOwner object to the target array.</returns>
+        /// <exception cref="ArgumentException">Thrown when the target sourceLength is smaller than the source sourceLength.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when the target sourceLength or the source sourceLength is smaller than 1.</exception>
         /// <exception cref="ArgumentNullException">Thrown when the source array is null.</exception>
         /// <exception cref="ArgumentNullException">Thrown when the target array is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the size is negative.</exception>
-        public static Owner<TUnmanaged> Copy<TUnmanaged>
+        public static AllocationOwner<TUnmanaged> Copy<TUnmanaged>
         (
-            TUnmanaged* copiedArray,
-            int length,
+            AllocationReference<TUnmanaged> sourcePointer,
+            int sourceLength,
             int targetLength
         ) where TUnmanaged : unmanaged
         {
-            if (targetLength < length)
+            if (targetLength < sourceLength)
             {
                 throw new ArgumentException();
             }
+            
+            // Size of the type.
             var size = SizeOf<TUnmanaged>();
-            var target = Malloc(size * targetLength, AlignOf<TUnmanaged>());
+            // Allocate the memory for the target array.
+            var target_pointer = Malloc<TUnmanaged>(size * targetLength);
+            
+            // Target and Source sourceLength must be greater than 0.
             if (targetLength <= 0) throw new ArgumentOutOfRangeException();
-            if (length <= 0) throw new ArgumentOutOfRangeException();
+            if (sourceLength <= 0) throw new ArgumentOutOfRangeException();
             MemCopy
             (
-                target,
-                (IntPtr) copiedArray,
-                size * length
+                target_pointer,
+                sourcePointer,
+                size * sourceLength
             );
-            return new Owner<TUnmanaged>((TUnmanaged*) target);
+            return new AllocationOwner<TUnmanaged>((TUnmanaged*) target_pointer);
+        }
+     
+        /// <summary>
+        ///     Copies the memory from the source array to the target array.
+        /// </summary>
+        /// <param name="sourceAllocation">The source array.</param>
+        /// <param name="sourceLength">The sourceLength of the source array.</param>
+        /// <param name="targetAllocation">The target array.</param>
+        /// <param name="targetLength">The sourceLength of the target array.</param>
+        /// <typeparam name="TUnmanaged">The type of the array.</typeparam>
+        /// <returns>An AllocationOwner object to the target array.</returns>
+        public static void CopyTo<TUnmanaged>
+        (
+            in AllocationReference<TUnmanaged> sourceAllocation,
+            int sourceLength,
+            in AllocationReference<TUnmanaged> targetAllocation,
+            int targetLength
+        ) where TUnmanaged : unmanaged
+        {
+            if (targetLength < sourceLength)
+            {
+                throw new ArgumentException();
+            }
+            if (targetLength <= 0) throw new ArgumentOutOfRangeException();
+            if (sourceLength <= 0) throw new ArgumentOutOfRangeException();
+            var size = SizeOf<TUnmanaged>();
+            MemCopy
+            (
+                targetAllocation,
+                sourceAllocation,
+                size * sourceLength
+            );
         }
 
         private static void MemCopy
         (
-            IntPtr target,
             IntPtr source,
+            IntPtr target,
             long size
         )
         {

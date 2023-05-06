@@ -1,11 +1,12 @@
 ﻿using System;
+using GGUnmanagedApi.Core.Pointer;
 
 namespace GGUnmanagedApi.Core.Containers
 {
     public unsafe struct LinkedNode<T> : IDisposable where T : unmanaged
     {
         public T Value;
-        public Allocation.Owner<LinkedNode<T>> Next;
+        public AllocationOwner<LinkedNode<T>> Next;
         
         public LinkedNode
         (

@@ -1,20 +1,20 @@
 ﻿using System;
+using GGUnmanagedApi.Core.Pointer;
 
 namespace GGUnmanagedApi.Core
 {
     public static unsafe partial class Allocation
     {
-        public static Owner<TUnmanaged> AllocateNew<TUnmanaged>
+        public static AllocationOwner<TUnmanaged> AllocateNew<TUnmanaged>
         (
             int length = 1
         ) where TUnmanaged : unmanaged
         {
-            return new Owner<TUnmanaged>
+            return new AllocationOwner<TUnmanaged>
             (
-                (TUnmanaged*) Malloc
+                (TUnmanaged*) Malloc<TUnmanaged>
                 (
-                    SizeOf<TUnmanaged>() * length,
-                    AlignOf<TUnmanaged>()
+                    SizeOf<TUnmanaged>() * length
                 )
             );
         }
