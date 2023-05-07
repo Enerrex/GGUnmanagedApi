@@ -3,15 +3,9 @@ using GGUnmanagedApi.Core.Pointer;
 
 namespace GGUnmanagedApi.Core.Containers
 {
-
-
     /// <summary>
     /// WARN: This struct has a functionality to expand infinitely as long as elements are added.
     /// Every time capacity is reached, the array is reallocated at ~twice the previous size.
-    /// Is this a problem? Maybe. It should only be used within the confines of GOAP where it is
-    /// facilitating arbitrarily sized values that might be "lists". The memory for the list of
-    /// "actions" should run out long before any theoretical list grows too large. But be careful
-    /// I guess?
     /// </summary>
     /// <typeparam name="TUnmanaged"></typeparam>
     public unsafe struct PointerList<TUnmanaged> : IDisposable where TUnmanaged : unmanaged
@@ -20,7 +14,6 @@ namespace GGUnmanagedApi.Core.Containers
 
         public int Capacity { get; private set; }
         public int Count { get; private set; }
-        
 
         public PointerList
         (

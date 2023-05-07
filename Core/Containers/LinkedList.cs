@@ -21,7 +21,7 @@ namespace GGUnmanagedApi.Core.Containers
         )
         {
             Count += 1;
-            AllocationOwner<LinkedNode<T>> allocation_owner = Allocation.AllocateNew<LinkedNode<T>>();
+            var allocation_owner = Allocation.AllocateNew<LinkedNode<T>>();
             allocation_owner.Pointer->Value = valueIn;
             if (Head == null)
             {

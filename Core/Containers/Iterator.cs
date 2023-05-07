@@ -17,11 +17,6 @@ namespace GGUnmanagedApi.Core.Containers
             _index = -1;
         }
         
-        bool IUnmanagedIterator<T>.MoveNext()
-        {
-            return MoveNext().Success;
-        }
-            
         public MoveNextResult MoveNext()
         {
             if (_currentNode == null)

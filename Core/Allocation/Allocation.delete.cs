@@ -1,6 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using GGUnmanagedApi.Core.Pointer;
+﻿using GGUnmanagedApi.Core.Pointer;
 
 namespace GGUnmanagedApi.Core
 {

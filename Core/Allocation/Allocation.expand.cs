@@ -1,5 +1,4 @@
-﻿using System;
-using GGUnmanagedApi.Core.Pointer;
+﻿using GGUnmanagedApi.Core.Pointer;
 
 namespace GGUnmanagedApi.Core
 {

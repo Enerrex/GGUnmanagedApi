@@ -1,8 +1,18 @@
-﻿namespace GGUnmanagedApi.API.Iterator
+﻿using GGUnmanagedApi.Core.Iterator;
+
+namespace GGUnmanagedApi.API.Iterator
 {
-    public interface IUnmanagedIterator<TNode> where TNode : unmanaged
+    public interface IUnmanagedIteratorBase<TNode, THasNext> where TNode : unmanaged
     {
         TNode Current { get; }
-        bool MoveNext();
+        THasNext MoveNext();
+    }
+    
+    public interface IUnmanagedIterator<TNode> : IUnmanagedIteratorBase<TNode, bool> where TNode : unmanaged
+    {
+    }
+    
+    public interface IUnmanagedIteratorWithIndex<TNode> : IUnmanagedIteratorBase<TNode, MoveNextResult> where TNode : unmanaged
+    {
     }
 }
