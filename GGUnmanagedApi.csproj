@@ -9,6 +9,7 @@
         <LangVersion>8</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <TargetFrameworks>net470;netstandard2.1</TargetFrameworks>
+        <IsPackable>true</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
