@@ -104,7 +104,7 @@ namespace GGUnmanagedApi.Core.Containers
             if (CheckCapacityExceeded(Count))
             {
                 // Double the length if the count exceeds the length
-                Expand(Capacity * 2);
+                ExpandCapacity(Capacity * 2);
             }
             _allocationOwner[Count] = value;
             Count++;
@@ -115,15 +115,15 @@ namespace GGUnmanagedApi.Core.Containers
             in PointerList<TUnmanaged> values
         )
         {
-
+            var updated_count = Count + values.Count;
             // Determine new count, then expand if necessary
-            if (CheckCapacityExceeded(Count))
+            if (CheckCapacityExceeded(updated_count))
             {
                 // Update the length to be double the current length plus the number of elements to be added
                 // E.g. if current length is 10 and we want to add 11 elements, the new length will be 10 * 2 + 11 = 31
                 // whereas if we only doubled the length, we would have 10 * 2 = 20
                 var updated_capacity = Capacity * 2 + values.Count;
-                Expand(updated_capacity);
+                ExpandCapacity(updated_capacity);
             }
 
             // Copy values from the source array to the target (this) array
@@ -139,7 +139,7 @@ namespace GGUnmanagedApi.Core.Containers
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Expand
+        private void ExpandCapacity
         (
             int updatedCapacity
         )
@@ -151,6 +151,7 @@ namespace GGUnmanagedApi.Core.Containers
                 Capacity,
                 updatedCapacity
             );
+            Capacity = updatedCapacity;
             _allocationOwner.Dispose();
             _allocationOwner = new_storage;
         }

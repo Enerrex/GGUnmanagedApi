@@ -30,23 +30,19 @@ namespace GGUnmanagedApi.Core
                 throw new ArgumentException();
             }
             
-            // Size of the type.
-            var size = SizeOf<TUnmanaged>();
             // Allocate the memory for the target array.
-            var target_pointer = Malloc<TUnmanaged>(size * targetLength);
-            
-            // Target and Source sourceLength must be greater than 0.
-            if (targetLength <= 0) throw new ArgumentOutOfRangeException();
-            if (sourceLength <= 0) throw new ArgumentOutOfRangeException();
-            MemCopy
+            var target_allocation = AllocateNew<TUnmanaged>(targetLength);
+            CopyTo
             (
-                target_pointer,
                 sourcePointer,
-                size * sourceLength
+                sourceLength,
+                target_allocation.ToReference(),
+                targetLength
             );
-            return new AllocationOwner<TUnmanaged>((TUnmanaged*) target_pointer);
+
+            return target_allocation;
         }
-     
+
         /// <summary>
         ///     Copies the memory from the source array to the target array.
         /// </summary>
@@ -68,13 +64,17 @@ namespace GGUnmanagedApi.Core
             {
                 throw new ArgumentException();
             }
+
+            // Size of the type.
+            var size = SizeOf<TUnmanaged>();
+            // Target and Source sourceLength must be greater than 0.
             if (targetLength <= 0) throw new ArgumentOutOfRangeException();
             if (sourceLength <= 0) throw new ArgumentOutOfRangeException();
-            var size = SizeOf<TUnmanaged>();
+            // Copy bytes from source to target.
             MemCopy
             (
-                targetAllocation,
                 sourceAllocation,
+                targetAllocation,
                 size * sourceLength
             );
         }
@@ -101,8 +101,8 @@ namespace GGUnmanagedApi.Core
                 throw new ArgumentOutOfRangeException("size", "Size must be non-negative.");
             }
 
-            byte* src = (byte*) source;
-            byte* dest = (byte*) target;
+            byte* src = (byte*)source;
+            byte* dest = (byte*)target;
 
             while (size > 0)
             {

@@ -28,10 +28,17 @@ namespace GGUnmanagedApi.Core
 
             return aligned_memory_pointer;
         }
-        
-        private static IntPtr Malloc<TUnmanaged>(long size) where TUnmanaged : unmanaged
+
+        /// <summary>
+        ///    Allocates unmanaged memory for "length" number of elements of type TUnmanaged.
+        /// </summary>
+        /// <param name="length">Number of elements to allocate space for.</param>
+        /// <typeparam name="TUnmanaged">Type of element to be allocated</typeparam>
+        /// <returns></returns>
+        private static IntPtr Malloc<TUnmanaged>(int length) where TUnmanaged : unmanaged
         {
             var alignment = AlignOf<TUnmanaged>();
+            var size = SizeOf<TUnmanaged>() * length;
             return Malloc(size, alignment);
         }
     }

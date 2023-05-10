@@ -13,7 +13,7 @@ namespace GGUnmanagedApi.Core
             (
                 (TUnmanaged*) Malloc<TUnmanaged>
                 (
-                    SizeOf<TUnmanaged>() * length
+                    length
                 )
             );
         }

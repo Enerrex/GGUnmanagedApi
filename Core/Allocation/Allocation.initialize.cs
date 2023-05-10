@@ -10,13 +10,7 @@ namespace GGUnmanagedApi.Core
             TUnmanaged? value = null
         ) where TUnmanaged : unmanaged
         {
-            var allocated = new AllocationOwner<TUnmanaged>
-            (
-                (TUnmanaged*) Malloc<TUnmanaged>
-                (
-                    SizeOf<TUnmanaged>() * length
-                )
-            );
+            var allocated = AllocateNew<TUnmanaged>(length);
             
             for (var i = 0; i < length; i++)
             {
