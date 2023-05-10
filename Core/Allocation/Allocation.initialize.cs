@@ -33,7 +33,7 @@ namespace GGUnmanagedApi.Core
         {
             for (var i = 0; i < allocationLength; i++)
             {
-                *(allocationReference.Pointer + i) = new TUnmanaged();
+                *(allocationReference.ToPointer() + i) = new TUnmanaged();
             }
         }
     }

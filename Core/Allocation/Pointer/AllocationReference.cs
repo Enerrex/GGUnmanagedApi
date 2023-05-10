@@ -5,7 +5,7 @@ namespace GGUnmanagedApi.Core.Pointer
     public readonly unsafe struct AllocationReference<TUnmanaged> where TUnmanaged : unmanaged
     {
         // ReSharper disable once MemberCanBePrivate.Global
-        public TUnmanaged* Pointer { get; }
+        private TUnmanaged* Pointer { get; }
 
         public AllocationReference
         (
@@ -27,6 +27,11 @@ namespace GGUnmanagedApi.Core.Pointer
         {
             get => *(Pointer + index);
             set => *(Pointer + index) = value;
+        }
+        
+        public TUnmanaged* ToPointer(int index = 0)
+        {
+            return Pointer + index;
         }
 
         #region OPERATORS

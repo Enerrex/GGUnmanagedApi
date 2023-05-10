@@ -47,7 +47,7 @@ namespace GGUnmanagedApi.Core.Containers
             }
         }
 
-        public LinkedList<T> GetCopy()
+        public readonly LinkedList<T> GetCopy()
         {
             var new_list = new LinkedList<T>();
             var node = Head;
@@ -60,7 +60,7 @@ namespace GGUnmanagedApi.Core.Containers
             return new_list;
         }
 
-        public NodeIterator<T> GetIterator()
+        public readonly NodeIterator<T> GetIterator()
         {
             return new NodeIterator<T>(Head);
         }
