@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using GGUnmanagedApi.Core.Pointer;
+using Core.Pointer;
 
-namespace GGUnmanagedApi.Core.Containers
+namespace Core.Containers
 {
     /// <summary>
-    /// WARN: This struct has a functionality to expand infinitely as long as elements are added.
-    /// Every time length is reached, the array is reallocated at ~twice the previous size.
+    ///     WARN: This struct has a functionality to expand infinitely as long as elements are added.
+    ///     Every time length is reached, the array is reallocated at ~twice the previous size.
     /// </summary>
     /// <typeparam name="TUnmanaged"></typeparam>
     public unsafe struct PointerList<TUnmanaged> : IDisposable where TUnmanaged : unmanaged
@@ -29,7 +29,7 @@ namespace GGUnmanagedApi.Core.Containers
         public PointerList
         (
             TUnmanaged valueIn
-        ) : this(capacity: 1)
+        ) : this(1)
         {
             _allocationOwner[0] = valueIn;
         }
@@ -37,7 +37,7 @@ namespace GGUnmanagedApi.Core.Containers
         public PointerList
         (
             PointerList<TUnmanaged> copiedList
-        ) : this(capacity: copiedList.Capacity)
+        ) : this(copiedList.Capacity)
         {
             Allocation.CopyTo
             (
@@ -56,15 +56,15 @@ namespace GGUnmanagedApi.Core.Containers
         )
         {
             return index >= Capacity;
-        }        
-        
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly bool CheckIndexOutOfRange
         (
             int index
         )
         {
-            return (index < 0 || index >= Count);
+            return index < 0 || index >= Count;
         }
 
         public TUnmanaged this
@@ -93,7 +93,7 @@ namespace GGUnmanagedApi.Core.Containers
         }
 
         /// <summary>
-        /// Adds a new element. Expands the array if Count exceeds to Length
+        ///     Adds a new element. Expands the array if Count exceeds to Length
         /// </summary>
         /// <param name="value"></param>
         public void Add
@@ -102,10 +102,8 @@ namespace GGUnmanagedApi.Core.Containers
         )
         {
             if (CheckCapacityExceeded(Count))
-            {
                 // Double the length if the count exceeds the length
                 ExpandCapacity(Capacity * 2);
-            }
             _allocationOwner[Count] = value;
             Count++;
         }
@@ -117,7 +115,8 @@ namespace GGUnmanagedApi.Core.Containers
         {
             var updated_count = Count + values.Count;
             // Determine new count, then expand if necessary
-            if (CheckCapacityExceeded(updated_count))
+            // Subtract 1 from the updated count because we don't want to expand if the count is exactly equal to the capacity
+            if (CheckCapacityExceeded(updated_count - 1))
             {
                 // Update the length to be double the current length plus the number of elements to be added
                 // E.g. if current length is 10 and we want to add 11 elements, the new length will be 10 * 2 + 11 = 31
@@ -130,10 +129,10 @@ namespace GGUnmanagedApi.Core.Containers
             AllocationReference<TUnmanaged> starting_pointer = _allocationOwner.Pointer + Count;
             Allocation.CopyTo
             (
-                sourceAllocation: values._allocationOwner.ToReference(),
-                sourceLength: values.Count,
-                targetAllocation: starting_pointer,
-                targetLength: values.Count
+                values._allocationOwner.ToReference(),
+                values.Count,
+                starting_pointer,
+                values.Count
             );
             Count += values.Count;
         }
@@ -145,7 +144,7 @@ namespace GGUnmanagedApi.Core.Containers
         )
         {
             // Copy the old array to a new array with the specified length
-            var new_storage = Allocation.CopyToLargerAllocation
+            var new_storage = Allocation.CopyToNew
             (
                 _allocationOwner.ToReference(),
                 Capacity,

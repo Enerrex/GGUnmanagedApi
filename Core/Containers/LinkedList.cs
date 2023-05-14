@@ -1,76 +1,83 @@
 ﻿using System;
-using GGUnmanagedApi.Core.Pointer;
+using Core.Pointer;
 
-namespace GGUnmanagedApi.Core.Containers
+namespace Core.Containers
 {
-    // TODO: explore custom allocator to pre-allocate blocks of memory
-    public unsafe struct LinkedList<T> : IDisposable where T : unmanaged
+    public unsafe struct LinkedList<TUnmanaged> : IDisposable where TUnmanaged : unmanaged
     {
+        private AllocationOwner<LinkedNode<TUnmanaged>> _head;
         public int Count { get; private set; }
-        public LinkedNode<T>* Head { get; private set; }
-        public LinkedNode<T>* Tail { get; private set; }
+        public readonly AllocationReference<LinkedNode<TUnmanaged>> Head
+        {
+            get => _head.ToReference();
+        }
+        public AllocationReference<LinkedNode<TUnmanaged>> Tail { get; private set; }
 
-        public LinkedList(T valueIn) : this()
+        public LinkedList
+        (
+            TUnmanaged valueIn
+        ) : this()
         {
             AddNode(valueIn);
         }
 
         public void AddNode
         (
-            T valueIn
+            TUnmanaged valueIn
         )
         {
             Count += 1;
-            var allocation_owner = Allocation.AllocateNew<LinkedNode<T>>();
-            allocation_owner.Pointer->Value = valueIn;
-            if (Head == null)
+            var allocation_owner = Allocation.Initialize<LinkedNode<TUnmanaged>>
+            (
+                new LinkedNode<TUnmanaged>(valueIn)
+            );
+            if (Head.Pointer == null)
             {
-                Head = allocation_owner;
-                Tail = allocation_owner;
+                _head = allocation_owner;
+                Tail = allocation_owner.ToReference();
                 return;
             }
 
-            Tail->Next = allocation_owner;
-            Tail = allocation_owner;
+            Tail.Pointer->SetNext(*allocation_owner.Pointer);
+            Tail = allocation_owner.ToReference();
         }
 
         public void AddNode
         (
-            LinkedList<T> valueIn
+            LinkedList<TUnmanaged> valueIn
         )
         {
-            var temp = valueIn.Head;
-            while (temp != null)
+            var other_list_node = valueIn.Head;
+            while (other_list_node.Pointer != null)
             {
-                AddNode(temp->Value);
-                temp = temp->Next;
+                AddNode(other_list_node.Pointer->Value);
+                other_list_node = other_list_node.Pointer->Next;
             }
         }
 
-        public readonly LinkedList<T> GetCopy()
+        public readonly LinkedList<TUnmanaged> GetCopy()
         {
-            var new_list = new LinkedList<T>();
+            var new_list = new LinkedList<TUnmanaged>();
             var node = Head;
-            while (node != null)
+            while (node.Pointer != null)
             {
-                new_list.AddNode(node->Value);
-                node = node->Next;
+                new_list.AddNode(node.Pointer->Value);
+                node = node.Pointer->Next;
             }
 
             return new_list;
         }
 
-        public readonly NodeIterator<T> GetIterator()
+        public readonly NodeIterator<TUnmanaged> GetIterator()
         {
-            return new NodeIterator<T>(Head);
+            return new NodeIterator<TUnmanaged>(Head.Pointer);
         }
 
         public void Dispose()
         {
-            if (Head != null) Head->Dispose();
+            if (Head.Pointer != null) Head.Pointer->Dispose();
 
-            Head = null;
-            Tail = null;
+            _head.Dispose();
         }
     }
 }

@@ -1,8 +1,8 @@
 ﻿using GGUnmanagedApi.Core.Iterator;
 
-namespace GGUnmanagedApi.API.Iterator
+namespace API.Iterator
 {
-    public interface IUnmanagedIteratorBase<TNode, THasNext> where TNode : unmanaged
+    public interface IUnmanagedIteratorBase<out TNode, out THasNext> where TNode : unmanaged
     {
         TNode Current { get; }
         THasNext MoveNext();

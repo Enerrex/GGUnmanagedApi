@@ -1,7 +1,8 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Core;
+using Core.Pointer;
 
-namespace GGUnmanagedApi.Core.Pointer.Tests
+namespace Tests
 {
     [TestClass]
     public unsafe class TestAllocationOwner
@@ -47,12 +48,12 @@ namespace GGUnmanagedApi.Core.Pointer.Tests
 
             AllocationOwner<TestObject> allocated = Allocation.Initialize<TestObject>
             (
-                5,
                 new TestObject
                 {
                     A = 4,
                     B = 5
-                }
+                },
+                5
             );
             
             // Verify that all 5 slots of allocated memory are initialized to the same value.

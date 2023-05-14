@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace GGUnmanagedApi.Core
+namespace Core
 {
     public static partial class Allocation
     {
@@ -10,10 +10,7 @@ namespace GGUnmanagedApi.Core
             IntPtr memoryPointer
         )
         {
-            if (memoryPointer == IntPtr.Zero)
-            {
-                throw new ArgumentException("Cannot free a zero memory pointer.", "memoryPointer");
-            }
+            if (memoryPointer == IntPtr.Zero) throw new ArgumentException("Cannot free a zero memory pointer.", "memoryPointer");
 
             Marshal.FreeHGlobal(memoryPointer);
         }

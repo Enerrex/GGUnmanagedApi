@@ -1,7 +1,7 @@
 ﻿using System;
-using GGUnmanagedApi.Core.Pointer;
+using Core.Pointer;
 
-namespace GGUnmanagedApi.Core
+namespace Core
 {
     public static unsafe partial class Allocation
     {
@@ -14,7 +14,10 @@ namespace GGUnmanagedApi.Core
         /// <typeparam name="TUnmanaged">The type of the array.</typeparam>
         /// <returns>An AllocationOwner object to the target array.</returns>
         /// <exception cref="ArgumentException">Thrown when the target sourceLength is smaller than the source sourceLength.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when the target sourceLength or the source sourceLength is smaller than 1.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     Thrown when the target sourceLength or the source sourceLength is smaller
+        ///     than 1.
+        /// </exception>
         /// <exception cref="ArgumentNullException">Thrown when the source array is null.</exception>
         /// <exception cref="ArgumentNullException">Thrown when the target array is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the size is negative.</exception>
@@ -25,11 +28,8 @@ namespace GGUnmanagedApi.Core
             int targetLength
         ) where TUnmanaged : unmanaged
         {
-            if (targetLength < sourceLength)
-            {
-                throw new ArgumentException();
-            }
-            
+            if (targetLength < sourceLength) throw new ArgumentException();
+
             // Allocate the memory for the target array.
             var target_allocation = AllocateNew<TUnmanaged>(targetLength);
             CopyTo
@@ -60,10 +60,7 @@ namespace GGUnmanagedApi.Core
             int targetLength
         ) where TUnmanaged : unmanaged
         {
-            if (targetLength < sourceLength)
-            {
-                throw new ArgumentException();
-            }
+            if (targetLength < sourceLength) throw new ArgumentException();
 
             // Size of the type.
             var size = SizeOf<TUnmanaged>();
@@ -86,23 +83,14 @@ namespace GGUnmanagedApi.Core
             long size
         )
         {
-            if (target == IntPtr.Zero)
-            {
-                throw new ArgumentNullException("target", "Target pointer cannot be null.");
-            }
+            if (target == IntPtr.Zero) throw new ArgumentNullException("target", "Target pointer cannot be null.");
 
-            if (target == IntPtr.Zero)
-            {
-                throw new ArgumentNullException("source", "Source pointer cannot be null.");
-            }
+            if (target == IntPtr.Zero) throw new ArgumentNullException("source", "Source pointer cannot be null.");
 
-            if (size < 0)
-            {
-                throw new ArgumentOutOfRangeException("size", "Size must be non-negative.");
-            }
+            if (size < 0) throw new ArgumentOutOfRangeException("size", "Size must be non-negative.");
 
-            byte* src = (byte*)source;
-            byte* dest = (byte*)target;
+            var src = (byte*) source;
+            var dest = (byte*) target;
 
             while (size > 0)
             {

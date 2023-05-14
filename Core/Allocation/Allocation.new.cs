@@ -1,6 +1,6 @@
-﻿using GGUnmanagedApi.Core.Pointer;
+﻿using Core.Pointer;
 
-namespace GGUnmanagedApi.Core
+namespace Core
 {
     public static unsafe partial class Allocation
     {

@@ -1,14 +1,12 @@
 ﻿using System;
 
-namespace GGUnmanagedApi.Core.Pointer
+namespace Core.Pointer
 {
     public readonly unsafe struct AllocationOwner<TUnmanaged> : IDisposable where TUnmanaged : unmanaged
     {
         // ReSharper disable once MemberCanBePrivate.Global
         public TUnmanaged* Pointer { get; }
         
-        public bool IsNull => (IntPtr)Pointer == IntPtr.Zero;
-
         public AllocationOwner
         (
             TUnmanaged* pointer
@@ -17,12 +15,15 @@ namespace GGUnmanagedApi.Core.Pointer
             Pointer = pointer;
         }
 
-        public TUnmanaged this[int index]
+        public TUnmanaged this
+        [
+            int index
+        ]
         {
             get => *(Pointer + index);
             set => *(Pointer + index) = value;
         }
-        
+
         public AllocationReference<TUnmanaged> ToReference()
         {
             return new AllocationReference<TUnmanaged>(this);
@@ -34,6 +35,7 @@ namespace GGUnmanagedApi.Core.Pointer
         }
 
         #region OPERATORS
+
         public static implicit operator IntPtr
         (
             AllocationOwner<TUnmanaged> allocationOwner
@@ -57,6 +59,7 @@ namespace GGUnmanagedApi.Core.Pointer
         {
             return allocationOwner.ToReference();
         }
+
         #endregion
     }
 }

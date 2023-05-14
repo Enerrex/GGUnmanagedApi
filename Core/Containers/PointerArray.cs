@@ -1,16 +1,16 @@
 ﻿using System;
-using GGUnmanagedApi.Core.Pointer;
+using Core.Pointer;
 
-namespace GGUnmanagedApi.Core.Containers
+namespace Core.Containers
 {
     /// <summary>
-    /// WARN: This struct has a functionality to expand infinitely as long as elements are added.
-    /// Every time length is reached, the array is reallocated at ~twice the previous size.
+    ///     WARN: This struct has a functionality to expand infinitely as long as elements are added.
+    ///     Every time length is reached, the array is reallocated at ~twice the previous size.
     /// </summary>
     /// <typeparam name="TUnmanaged"></typeparam>
     public unsafe struct PointerArray<TUnmanaged> : IDisposable where TUnmanaged : unmanaged
     {
-        private AllocationOwner<TUnmanaged> AllocationOwner { get; set; }
+        private AllocationOwner<TUnmanaged> AllocationOwner { get; }
         public AllocationReference<TUnmanaged> AllocationReference => AllocationOwner.ToReference();
 
         public int Length { get; private set; }
@@ -28,7 +28,7 @@ namespace GGUnmanagedApi.Core.Containers
         public PointerArray
         (
             TUnmanaged valueIn
-        ) : this(length: 1)
+        ) : this(1)
         {
             AllocationOwner.Pointer[0] = valueIn;
         }
@@ -36,7 +36,7 @@ namespace GGUnmanagedApi.Core.Containers
         public PointerArray
         (
             PointerArray<TUnmanaged> copiedList
-        ) : this(length: copiedList.Length)
+        ) : this(copiedList.Length)
         {
             AllocationOwner = Allocation.Copy
             (
@@ -45,19 +45,24 @@ namespace GGUnmanagedApi.Core.Containers
                 Length
             );
         }
-        
-        internal PointerArray(AllocationOwner<TUnmanaged> allocationOwner, int length, int count)
+
+        internal PointerArray
+        (
+            AllocationOwner<TUnmanaged> allocationOwner,
+            int length,
+            int count
+        )
         {
             AllocationOwner = allocationOwner;
             Length = length;
         }
-        
+
         private readonly bool CheckIndexOutOfRange
         (
             int index
         )
         {
-            return (index < 0 || index >= Length);
+            return index < 0 || index >= Length;
         }
 
         public TUnmanaged this

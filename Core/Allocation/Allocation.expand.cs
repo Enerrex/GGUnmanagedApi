@@ -1,12 +1,22 @@
-﻿using GGUnmanagedApi.Core.Pointer;
+﻿using Core.Pointer;
 
-namespace GGUnmanagedApi.Core
+namespace Core
 {
-    public static unsafe partial class Allocation
+    public static partial class Allocation
     {
-        public static AllocationOwner<TUnmanaged> CopyToLargerAllocation<TUnmanaged>(in AllocationReference<TUnmanaged> copiedArray, int length, int targetLength) where TUnmanaged : unmanaged
+        public static AllocationOwner<TUnmanaged> CopyToNew<TUnmanaged>
+        (
+            in AllocationReference<TUnmanaged> copiedArray,
+            int length,
+            int targetLength
+        ) where TUnmanaged : unmanaged
         {
-            return Copy(copiedArray, length, targetLength);
+            return Copy
+            (
+                copiedArray,
+                length,
+                targetLength
+            );
         }
     }
 }

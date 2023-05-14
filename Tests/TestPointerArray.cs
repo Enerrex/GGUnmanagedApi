@@ -1,7 +1,7 @@
 ﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Core.Containers;
 
-namespace GGUnmanagedApi.Core.Containers.Tests
+namespace Tests
 {
     [TestClass]
     public class TestPointerArray

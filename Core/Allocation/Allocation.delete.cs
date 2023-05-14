@@ -1,6 +1,7 @@
-﻿using GGUnmanagedApi.Core.Pointer;
+﻿using System;
+using Core.Pointer;
 
-namespace GGUnmanagedApi.Core
+namespace Core
 {
     public static unsafe partial class Allocation
     {
@@ -9,7 +10,7 @@ namespace GGUnmanagedApi.Core
             AllocationOwner<T> allocationOwner
         ) where T : unmanaged
         {
-            Free(allocationOwner);
+            Free((IntPtr)allocationOwner.Pointer);
         }
     }
 }
