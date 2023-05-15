@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <AssemblyName>UnmanagedCore</AssemblyName>
+        <Title>GG Unmanaged Core</Title>
+        <Version>0.0.1</Version>
+        <RootNamespace>Core</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\GGUnmanagedAPI\GGUnmanagedAPI.csproj" />
+    </ItemGroup>
+
+</Project>
