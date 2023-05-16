@@ -18,18 +18,28 @@ namespace UnmanagedAPI
             );
         }
 
-        public static PointerOwner CreatePointerOwner<TUnmanaged>
+        public static AllocationOwner CreateNonGeneric<TUnmanaged>
         (
             int length
         ) where TUnmanaged : unmanaged
         {
-            return new PointerOwner
+            return Malloc<TUnmanaged>
             (
-                Malloc<TUnmanaged>
-                (
-                    length
-                )
+                length
             );
+        }
+        
+        public static AllocationOwner CreateNonGeneric<TUnmanaged>
+        (
+            TUnmanaged value
+        ) where TUnmanaged : unmanaged
+        {
+            var owner = Malloc<TUnmanaged>
+            (
+                1
+            );
+            *owner.As<TUnmanaged>() = value;
+            return owner;
         }
     }
 }

@@ -2,7 +2,7 @@ using System;
 
 namespace UnmanagedAPI.Pointer
 {
-    public readonly unsafe struct AllocationOwner<TUnmanaged> : IOwner<TUnmanaged>, IDisposable
+    public readonly unsafe struct AllocationOwner<TUnmanaged> : IDisposable
         where TUnmanaged : unmanaged
     {
         // ReSharper disable once MemberCanBePrivate.Global

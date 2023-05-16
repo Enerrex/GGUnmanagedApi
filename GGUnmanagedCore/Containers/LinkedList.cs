@@ -30,7 +30,7 @@ namespace Core.Containers
 
             if (Head.Pointer == null)
             {
-                var allocation_owner = Allocation.Create
+                var allocation_owner = Allocation.Initialize
                 (
                     new LinkedNode<TUnmanaged>(valueIn)
                 );

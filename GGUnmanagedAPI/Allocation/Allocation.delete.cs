@@ -5,36 +5,20 @@ namespace UnmanagedAPI
 {
     public static unsafe partial class Allocation
     {
-        public static void Delete<T>
+        public static void Delete<TUnmanaged>
         (
-            AllocationOwner<T> allocationOwner
-        ) where T : unmanaged
+            AllocationOwner<TUnmanaged> allocationOwner
+        ) where TUnmanaged : unmanaged
         {
             Free((IntPtr)allocationOwner.Pointer);
         }
 
-        public static void Delete<TOwner, TUnmanaged>
-        (
-            TOwner allocationOwner
-        ) where TOwner : unmanaged, IOwner<TUnmanaged> where TUnmanaged : unmanaged
-        {
-            Free(allocationOwner.ToReference());
-        }
-
-        public static void Delete<TOwner>
-        (
-            TOwner allocationOwner
-        ) where TOwner : unmanaged, IOwner<TOwner>
-        {
-            Free(allocationOwner.ToReference());
-        }
-        
         public static void Delete
         (
-            PointerOwner allocationOwner
+            AllocationOwner allocationOwner
         )
         {
-            Free(allocationOwner);
+            Free(allocationOwner.Pointer);
         }
     }
 }

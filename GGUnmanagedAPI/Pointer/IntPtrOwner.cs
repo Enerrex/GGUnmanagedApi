@@ -2,11 +2,13 @@
 
 namespace UnmanagedAPI.Pointer
 {
-    public readonly unsafe struct PointerOwner
+    public readonly unsafe struct AllocationOwner
     {
         public IntPtr Pointer { get; }
+        
+        public bool IsNull => Pointer == IntPtr.Zero;
 
-        public PointerOwner
+        public AllocationOwner
         (
             IntPtr pointer
         )
@@ -17,6 +19,11 @@ namespace UnmanagedAPI.Pointer
         public AllocationReference<TUnmanaged> ToReference<TUnmanaged>() where TUnmanaged : unmanaged
         {
             return new AllocationReference<TUnmanaged>((TUnmanaged*)Pointer);
+        }
+        
+        public TUnmanaged* As<TUnmanaged>() where TUnmanaged : unmanaged
+        {
+            return (TUnmanaged*)Pointer;
         }
 
         public void Dispose()
