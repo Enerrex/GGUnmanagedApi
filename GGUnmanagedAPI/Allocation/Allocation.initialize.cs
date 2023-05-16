@@ -26,6 +26,17 @@ namespace UnmanagedAPI
             for (var i = 0; i < length; i++) *(allocated.Pointer + i) = new TUnmanaged();
             return allocated;
         }
+        
+        public static AllocationOwner<TUnmanaged> Initialize<TUnmanaged>
+        (
+            in TUnmanaged value
+        ) where TUnmanaged : unmanaged
+        {
+            var allocated = Create<TUnmanaged>();
+
+            *allocated.Pointer = value;
+            return allocated;
+        }
 
         public static void Initialize<TUnmanaged>
         (

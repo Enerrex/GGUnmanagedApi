@@ -78,6 +78,15 @@ namespace UnmanagedAPI.Pointer
         {
             return new AllocationReference<TUnmanaged>(pointer);
         }
+        
+        // Override ! operator to check if AllocationReference<TUnmanaged> is null
+        public static TUnmanaged* operator ~
+        (
+            AllocationReference<TUnmanaged> allocationReference
+        )
+        {
+            return allocationReference.Pointer;
+        }
 
         #endregion
     }

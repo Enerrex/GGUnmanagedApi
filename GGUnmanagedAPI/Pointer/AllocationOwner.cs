@@ -60,6 +60,14 @@ namespace UnmanagedAPI.Pointer
         {
             return allocationOwner.ToReference();
         }
+        
+        public static TUnmanaged* operator ~
+        (
+            AllocationOwner<TUnmanaged> allocationReference
+        )
+        {
+            return allocationReference.Pointer;
+        }
 
         #endregion
     }

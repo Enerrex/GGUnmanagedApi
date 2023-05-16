@@ -14,24 +14,22 @@ namespace UnmanagedAPI
                 (TUnmanaged*)Malloc<TUnmanaged>
                 (
                     length
-                )
+                ).Pointer
             );
         }
 
-        public static AllocationOwner<TUnmanaged> Create<TUnmanaged>
+        public static PointerOwner CreatePointerOwner<TUnmanaged>
         (
-            TUnmanaged value
+            int length
         ) where TUnmanaged : unmanaged
         {
-            var owner = new AllocationOwner<TUnmanaged>
+            return new PointerOwner
             (
-                (TUnmanaged*)Malloc<TUnmanaged>
+                Malloc<TUnmanaged>
                 (
-                    1
+                    length
                 )
             );
-            *owner.Pointer = value;
-            return owner;
         }
     }
 }

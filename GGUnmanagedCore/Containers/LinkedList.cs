@@ -6,10 +6,10 @@ namespace Core.Containers
 {
     public unsafe struct LinkedList<TUnmanaged> : IDisposable where TUnmanaged : unmanaged
     {
-        private AllocationOwner<LinkedNode<TUnmanaged>> _head;
         public int Count { get; private set; }
         public bool IsEmpty => Count == 0;
 
+        private AllocationOwner<LinkedNode<TUnmanaged>> _head;
         public readonly AllocationReference<LinkedNode<TUnmanaged>> Head => _head.ToReference();
         public AllocationReference<LinkedNode<TUnmanaged>> Tail { get; private set; }
 
@@ -27,19 +27,19 @@ namespace Core.Containers
         )
         {
             Count += 1;
-            var allocation_owner = Allocation.Create
-            (
-                new LinkedNode<TUnmanaged>(valueIn)
-            );
+
             if (Head.Pointer == null)
             {
+                var allocation_owner = Allocation.Create
+                (
+                    new LinkedNode<TUnmanaged>(valueIn)
+                );
                 _head = allocation_owner;
                 Tail = allocation_owner.ToReference();
                 return;
             }
 
-            Tail.Pointer->SetNext(*allocation_owner.Pointer);
-            Tail = allocation_owner.ToReference();
+            Tail = Tail.Pointer->SetNext(valueIn);
         }
 
         public void AddNode

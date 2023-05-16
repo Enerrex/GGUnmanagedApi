@@ -15,10 +15,9 @@ namespace Core.Containers
     {
         public readonly TUnmanaged Value;
 
-        public AllocationReference<LinkedNode<TUnmanaged>> Next =>
-            new AllocationReference<LinkedNode<TUnmanaged>>(_next);
+        public AllocationReference<LinkedNode<TUnmanaged>> Next => new AllocationReference<LinkedNode<TUnmanaged>>(_next);
 
-        private LinkedNode<TUnmanaged>* _next;
+        private PointerOwner _next;
 
         public LinkedNode
         (
@@ -29,29 +28,20 @@ namespace Core.Containers
             _next = default;
         }
 
-        public void SetNext
+        public AllocationReference<LinkedNode<TUnmanaged>> SetNext
         (
             TUnmanaged value
         )
         {
             if (_next != null) _next->Dispose();
-            // This is bad! We're throwing away the AllocationOwner object because of a CLR limitation
             var allocation = Allocation.Create
             (
                 new LinkedNode<TUnmanaged>(value)
             );
             _next = allocation.Pointer;
+            return allocation.ToReference();
         }
-
-        // Potentially unsafe, previous node must be disposed of manually
-        public void SetNext
-        (
-            LinkedNode<TUnmanaged> value
-        )
-        {
-            *_next = value;
-        }
-
+        
         public static implicit operator TUnmanaged
         (
             LinkedNode<TUnmanaged> node
@@ -67,13 +57,35 @@ namespace Core.Containers
 
         public void Dispose()
         {
-            if ((IntPtr)Next.Pointer == IntPtr.Zero) return;
+            if ((IntPtr) Next.Pointer == IntPtr.Zero) return;
             // These must happen in this order
             //     Dispose of the next LinkedNode (which will dispose of the next LinkedNode, etc.)
             _next->Dispose();
             //     Dispose of our own allocation for the next node
             //     This is bad! We shouldn't ever do this anywhere else
             Allocation.Delete(this);
+        }
+
+        /// <summary>
+        /// Copy Strategy for LinkedNode
+        ///     Node: Copies the node itself, meaning we copy that chain of nodes (this is the default)
+        ///         example scenario, give this node, and a node A being added as the next node:
+        ///         this -> null
+        ///         A -> B -> G -> null
+        ///         setNext(A)
+        ///         this -> A -> B -> G -> null
+        ///     Value
+        ///         Copy only the value of the node, do not copy the chain of nodes
+        ///     Values: Copies the values of the nodes, but not the nodes themselves
+        ///         A1 -> B1 -> G1 -> null
+        ///         setNext(A)
+        ///         this -> A2 -> B2 -> G2 -> null
+        /// </summary>
+        public enum LinkedNodeCopyStrategy
+        {
+            Node, // Inserts the nodes into the new list
+            Value, // Copies the value of the node (the value it contains), but not the node itself
+            Values, // Copies the values of the node and all subsequent nodes
         }
     }
 }

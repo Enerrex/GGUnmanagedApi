@@ -28,5 +28,13 @@ namespace UnmanagedAPI
         {
             Free(allocationOwner.ToReference());
         }
+        
+        public static void Delete
+        (
+            PointerOwner allocationOwner
+        )
+        {
+            Free(allocationOwner);
+        }
     }
 }

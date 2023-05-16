@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using UnmanagedAPI.Pointer;
 
 namespace UnmanagedAPI
 {
     public static partial class Allocation
     {
-        private static IntPtr Malloc
+        private static PointerOwner Malloc
         (
             long size,
             int alignment
@@ -25,7 +26,7 @@ namespace UnmanagedAPI
                 ((long)memory_pointer + alignment - 1) & ~(alignment - 1)
             );
 
-            return aligned_memory_pointer;
+            return new PointerOwner(aligned_memory_pointer);
         }
 
         /// <summary>
@@ -34,7 +35,7 @@ namespace UnmanagedAPI
         /// <param name="length">Number of elements to allocate space for.</param>
         /// <typeparam name="TUnmanaged">Type of element to be allocated</typeparam>
         /// <returns></returns>
-        private static IntPtr Malloc<TUnmanaged>
+        private static PointerOwner Malloc<TUnmanaged>
         (
             int length
         ) where TUnmanaged : unmanaged
