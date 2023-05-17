@@ -1,5 +1,3 @@
-using UnmanagedAPI.Pointer;
-
 namespace UnmanagedAPI
 {
     public static partial class Allocation

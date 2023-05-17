@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using UnmanagedAPI;
-using UnmanagedAPI.Pointer;
 
 namespace Core.Containers
 {
@@ -12,7 +11,7 @@ namespace Core.Containers
     /// <typeparam name="TUnmanaged"></typeparam>
     public unsafe struct PointerList<TUnmanaged> : IDisposable where TUnmanaged : unmanaged
     {
-        private Owner<TUnmanaged> _owner;
+        private Allocation.Owner<TUnmanaged> _owner;
 
         public int Capacity { get; private set; }
         public int Count { get; private set; }
@@ -127,7 +126,7 @@ namespace Core.Containers
             }
 
             // Copy values from the source array to the target (this) array
-            Reference<TUnmanaged> starting_pointer = _owner.Pointer + Count;
+            Allocation.Reference<TUnmanaged> starting_pointer = _owner.Pointer + Count;
             Allocation.CopyTo
             (
                 values._owner.ToReference(),

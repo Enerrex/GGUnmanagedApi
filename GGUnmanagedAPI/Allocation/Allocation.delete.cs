@@ -1,5 +1,4 @@
 ﻿using System;
-using UnmanagedAPI.Pointer;
 
 namespace UnmanagedAPI
 {
@@ -18,7 +17,7 @@ namespace UnmanagedAPI
             Owner owner
         )
         {
-            Free(owner.Pointer);
+            Free(~owner);
         }
     }
 }

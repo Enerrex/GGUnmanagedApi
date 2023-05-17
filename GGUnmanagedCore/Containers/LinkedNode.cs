@@ -1,6 +1,5 @@
 ﻿using System;
 using UnmanagedAPI;
-using UnmanagedAPI.Pointer;
 
 namespace Core.Containers
 {
@@ -9,9 +8,9 @@ namespace Core.Containers
     {
         public readonly TUnmanaged Value;
 
-        public Reference<LinkedNode<TUnmanaged>> Next => _next.ToReference<LinkedNode<TUnmanaged>>();
+        public Allocation.Reference<LinkedNode<TUnmanaged>> Next => _next.ToReference<LinkedNode<TUnmanaged>>();
 
-        private Owner _next;
+        private Allocation.Owner _next;
 
         public LinkedNode
         (
@@ -22,7 +21,13 @@ namespace Core.Containers
             _next = default;
         }
 
-        public Reference<LinkedNode<TUnmanaged>> SetNext
+        /// <summary>
+        /// Adds a new LinkedNode to the end of the list with the specified value.
+        /// Returns a reference to the new LinkedNode.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public Allocation.Reference<LinkedNode<TUnmanaged>> SetNext
         (
             TUnmanaged value
         )

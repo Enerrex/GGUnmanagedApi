@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using UnmanagedAPI.Pointer;
 
 namespace UnmanagedAPI
 {

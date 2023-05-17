@@ -1,5 +1,4 @@
 ﻿using System;
-using UnmanagedAPI.Pointer;
 
 namespace UnmanagedAPI
 {

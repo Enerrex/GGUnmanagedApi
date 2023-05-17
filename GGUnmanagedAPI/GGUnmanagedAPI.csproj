@@ -8,4 +8,8 @@
         <RootNamespace>UnmanagedAPI</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Folder Include="Pointer\" />
+    </ItemGroup>
+
 </Project>

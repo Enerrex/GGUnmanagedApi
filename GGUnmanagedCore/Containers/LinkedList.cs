@@ -1,6 +1,5 @@
 ﻿using System;
 using UnmanagedAPI;
-using UnmanagedAPI.Pointer;
 
 namespace Core.Containers
 {
@@ -9,9 +8,10 @@ namespace Core.Containers
         public int Count { get; private set; }
         public bool IsEmpty => Count == 0;
 
-        private Owner<LinkedNode<TUnmanaged>> _head;
-        public readonly Reference<LinkedNode<TUnmanaged>> Head => _head.ToReference();
-        public Reference<LinkedNode<TUnmanaged>> Tail { get; private set; }
+        // Allocation owner for the Head node.
+        private Allocation.Owner<LinkedNode<TUnmanaged>> _head;
+        public readonly Allocation.Reference<LinkedNode<TUnmanaged>> Head => _head.ToReference();
+        public Allocation.Reference<LinkedNode<TUnmanaged>> Tail { get; private set; }
 
         public LinkedList
         (
@@ -28,17 +28,22 @@ namespace Core.Containers
         {
             Count += 1;
 
-            if (Head.Pointer == null)
+            // If the list is empty, initialize it by creating a new node.
+            if (Head.IsNull)
             {
+                // This list becomes the owner of the Head allocation.
+                // Each subsequent node will be owned by the previous node
                 var allocation_owner = Allocation.Initialize
                 (
                     new LinkedNode<TUnmanaged>(valueIn)
                 );
+                // Set the Head Owner
                 _head = allocation_owner;
                 Tail = allocation_owner.ToReference();
                 return;
             }
 
+            // Head is not null, pass the value to the tail, it will create a new node.
             Tail = Tail.Pointer->SetNext(valueIn);
         }
 
@@ -53,6 +58,11 @@ namespace Core.Containers
                 AddNode(other_list_node.Pointer->Value);
                 other_list_node = other_list_node.Pointer->Next;
             }
+        }
+
+        public void AddNode(in LinkedNode<TUnmanaged> node)
+        {
+            
         }
 
         public readonly LinkedList<TUnmanaged> GetCopy()
@@ -75,7 +85,7 @@ namespace Core.Containers
 
         public void Dispose()
         {
-            if (Head.Pointer != null) Head.Pointer->Dispose();
+            if (Head.Pointer != null) (~Head)->Dispose();
 
             _head.Dispose();
         }

@@ -1,6 +1,4 @@
-﻿using UnmanagedAPI.Pointer;
-
-namespace UnmanagedAPI
+﻿namespace UnmanagedAPI
 {
     public static unsafe partial class Allocation
     {

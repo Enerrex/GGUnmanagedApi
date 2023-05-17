@@ -1,19 +1,18 @@
-﻿using UnmanagedAPI.Iterator;
-using UnmanagedAPI.Pointer;
+﻿using UnmanagedAPI;
+using UnmanagedAPI.Iterator;
 
 namespace Core.Containers
 {
     public unsafe struct NodeIterator<T> : IUnmanagedIteratorWithIndex<T> where T : unmanaged
     {
         private int _index;
-        private readonly Reference<LinkedNode<T>> _startNode;
-        private Reference<LinkedNode<T>> _currentNode;
+        private readonly Allocation.Reference<LinkedNode<T>> _startNode;
+        private Allocation.Reference<LinkedNode<T>> _currentNode;
 
         public T Current => _currentNode.Pointer->Value;
 
         public NodeIterator
-        (
-            Reference<LinkedNode<T>> head
+        (Allocation.Reference<LinkedNode<T>> head
         )
         {
             _startNode = head;

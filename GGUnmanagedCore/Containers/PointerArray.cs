@@ -1,6 +1,5 @@
 ﻿using System;
 using UnmanagedAPI;
-using UnmanagedAPI.Pointer;
 
 namespace Core.Containers
 {
@@ -11,8 +10,8 @@ namespace Core.Containers
     /// <typeparam name="TUnmanaged"></typeparam>
     public unsafe struct PointerArray<TUnmanaged> : IDisposable where TUnmanaged : unmanaged
     {
-        private Owner<TUnmanaged> Owner { get; }
-        public Reference<TUnmanaged> Reference => Owner.ToReference();
+        private Allocation.Owner<TUnmanaged> Owner { get; }
+        public Allocation.Reference<TUnmanaged> Reference => Owner.ToReference();
 
         public int Length { get; private set; }
 
@@ -48,8 +47,7 @@ namespace Core.Containers
         }
 
         internal PointerArray
-        (
-            Owner<TUnmanaged> owner,
+        (Allocation.Owner<TUnmanaged> owner,
             int length,
             int count
         )
