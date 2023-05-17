@@ -4,12 +4,12 @@ namespace UnmanagedAPI
 {
     public static unsafe partial class Allocation
     {
-        public static AllocationOwner<TUnmanaged> Create<TUnmanaged>
+        public static Owner<TUnmanaged> Create<TUnmanaged>
         (
             int length = 1
         ) where TUnmanaged : unmanaged
         {
-            return new AllocationOwner<TUnmanaged>
+            return new Owner<TUnmanaged>
             (
                 (TUnmanaged*)Malloc<TUnmanaged>
                 (
@@ -18,7 +18,7 @@ namespace UnmanagedAPI
             );
         }
 
-        public static AllocationOwner CreateNonGeneric<TUnmanaged>
+        public static Owner CreateNonGeneric<TUnmanaged>
         (
             int length
         ) where TUnmanaged : unmanaged
@@ -29,7 +29,7 @@ namespace UnmanagedAPI
             );
         }
         
-        public static AllocationOwner CreateNonGeneric<TUnmanaged>
+        public static Owner CreateNonGeneric<TUnmanaged>
         (
             TUnmanaged value
         ) where TUnmanaged : unmanaged

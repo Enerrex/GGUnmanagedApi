@@ -6,7 +6,7 @@ namespace UnmanagedAPI
 {
     public static partial class Allocation
     {
-        private static AllocationOwner Malloc
+        private static Owner Malloc
         (
             long size,
             int alignment
@@ -26,7 +26,7 @@ namespace UnmanagedAPI
                 ((long)memory_pointer + alignment - 1) & ~(alignment - 1)
             );
 
-            return new AllocationOwner(aligned_memory_pointer);
+            return new Owner(aligned_memory_pointer);
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace UnmanagedAPI
         /// <param name="length">Number of elements to allocate space for.</param>
         /// <typeparam name="TUnmanaged">Type of element to be allocated</typeparam>
         /// <returns></returns>
-        private static AllocationOwner Malloc<TUnmanaged>
+        private static Owner Malloc<TUnmanaged>
         (
             int length
         ) where TUnmanaged : unmanaged

@@ -12,7 +12,7 @@ namespace Core.Containers
     /// <typeparam name="TUnmanaged"></typeparam>
     public unsafe struct PointerList<TUnmanaged> : IDisposable where TUnmanaged : unmanaged
     {
-        private AllocationOwner<TUnmanaged> _allocationOwner;
+        private Owner<TUnmanaged> _owner;
 
         public int Capacity { get; private set; }
         public int Count { get; private set; }
@@ -24,7 +24,7 @@ namespace Core.Containers
         {
             if (capacity <= 0) throw new ArgumentException();
             Capacity = capacity;
-            _allocationOwner = Allocation.Create<TUnmanaged>(capacity);
+            _owner = Allocation.Create<TUnmanaged>(capacity);
         }
 
         public PointerList
@@ -32,7 +32,7 @@ namespace Core.Containers
             TUnmanaged valueIn
         ) : this(1)
         {
-            _allocationOwner[0] = valueIn;
+            _owner[0] = valueIn;
         }
 
         public PointerList
@@ -42,9 +42,9 @@ namespace Core.Containers
         {
             Allocation.CopyTo
             (
-                copiedList._allocationOwner.ToReference(),
+                copiedList._owner.ToReference(),
                 copiedList.Capacity,
-                _allocationOwner.ToReference(),
+                _owner.ToReference(),
                 copiedList.Capacity
             );
             Count = copiedList.Count;
@@ -76,12 +76,12 @@ namespace Core.Containers
             get
             {
                 if (CheckIndexOutOfRange(index)) throw new IndexOutOfRangeException();
-                return _allocationOwner[index];
+                return _owner[index];
             }
             set
             {
                 if (CheckIndexOutOfRange(index)) throw new IndexOutOfRangeException();
-                _allocationOwner[index] = value;
+                _owner[index] = value;
             }
         }
 
@@ -105,7 +105,7 @@ namespace Core.Containers
             if (CheckCapacityExceeded(Count))
                 // Double the length if the count exceeds the length
                 ExpandCapacity(Capacity * 2);
-            _allocationOwner[Count] = value;
+            _owner[Count] = value;
             Count++;
         }
 
@@ -127,10 +127,10 @@ namespace Core.Containers
             }
 
             // Copy values from the source array to the target (this) array
-            AllocationReference<TUnmanaged> starting_pointer = _allocationOwner.Pointer + Count;
+            Reference<TUnmanaged> starting_pointer = _owner.Pointer + Count;
             Allocation.CopyTo
             (
-                values._allocationOwner.ToReference(),
+                values._owner.ToReference(),
                 values.Count,
                 starting_pointer,
                 values.Count
@@ -147,19 +147,19 @@ namespace Core.Containers
             // Copy the old array to a new array with the specified length
             var new_storage = Allocation.CopyToNew
             (
-                _allocationOwner.ToReference(),
+                _owner.ToReference(),
                 Capacity,
                 updatedCapacity
             );
             Capacity = updatedCapacity;
-            _allocationOwner.Dispose();
-            _allocationOwner = new_storage;
+            _owner.Dispose();
+            _owner = new_storage;
         }
 
         public void Dispose()
         {
             if (Capacity == 0) return;
-            _allocationOwner.Dispose();
+            _owner.Dispose();
         }
     }
 }

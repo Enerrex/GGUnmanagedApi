@@ -12,7 +12,7 @@ namespace UnmanagedAPI
         /// <param name="sourceLength">The sourceLength of the source array.</param>
         /// <param name="targetLength">The sourceLength of the target array.</param>
         /// <typeparam name="TUnmanaged">The type of the array.</typeparam>
-        /// <returns>An AllocationOwner object to the target array.</returns>
+        /// <returns>An Owner object to the target array.</returns>
         /// <exception cref="ArgumentException">Thrown when the target sourceLength is smaller than the source sourceLength.</exception>
         /// <exception cref="ArgumentOutOfRangeException">
         ///     Thrown when the target sourceLength or the source sourceLength is smaller
@@ -21,9 +21,9 @@ namespace UnmanagedAPI
         /// <exception cref="ArgumentNullException">Thrown when the source array is null.</exception>
         /// <exception cref="ArgumentNullException">Thrown when the target array is null.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when the size is negative.</exception>
-        public static AllocationOwner<TUnmanaged> Copy<TUnmanaged>
+        public static Owner<TUnmanaged> Copy<TUnmanaged>
         (
-            AllocationReference<TUnmanaged> sourcePointer,
+            Reference<TUnmanaged> sourcePointer,
             int sourceLength,
             int targetLength
         ) where TUnmanaged : unmanaged
@@ -46,17 +46,17 @@ namespace UnmanagedAPI
         /// <summary>
         ///     Copies the memory from the source array to the target array.
         /// </summary>
-        /// <param name="sourceAllocation">The source array.</param>
+        /// <param name="source">The source array.</param>
         /// <param name="sourceLength">The sourceLength of the source array.</param>
-        /// <param name="targetAllocation">The target array.</param>
+        /// <param name="target">The target array.</param>
         /// <param name="targetLength">The sourceLength of the target array.</param>
         /// <typeparam name="TUnmanaged">The type of the array.</typeparam>
-        /// <returns>An AllocationOwner object to the target array.</returns>
+        /// <returns>An Owner object to the target array.</returns>
         public static void CopyTo<TUnmanaged>
         (
-            in AllocationReference<TUnmanaged> sourceAllocation,
+            in Reference<TUnmanaged> source,
             int sourceLength,
-            in AllocationReference<TUnmanaged> targetAllocation,
+            in Reference<TUnmanaged> target,
             int targetLength
         ) where TUnmanaged : unmanaged
         {
@@ -70,8 +70,8 @@ namespace UnmanagedAPI
             // Copy bytes from source to target.
             MemCopy
             (
-                sourceAllocation,
-                targetAllocation,
+                source,
+                target,
                 size * sourceLength
             );
         }

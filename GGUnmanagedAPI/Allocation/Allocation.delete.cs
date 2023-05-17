@@ -7,18 +7,18 @@ namespace UnmanagedAPI
     {
         public static void Delete<TUnmanaged>
         (
-            AllocationOwner<TUnmanaged> allocationOwner
+            Owner<TUnmanaged> owner
         ) where TUnmanaged : unmanaged
         {
-            Free((IntPtr)allocationOwner.Pointer);
+            Free((IntPtr)owner.Pointer);
         }
 
         public static void Delete
         (
-            AllocationOwner allocationOwner
+            Owner owner
         )
         {
-            Free(allocationOwner.Pointer);
+            Free(owner.Pointer);
         }
     }
 }

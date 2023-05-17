@@ -2,7 +2,7 @@
 
 namespace UnmanagedAPI.Pointer
 {
-    public readonly unsafe struct AllocationReference<TUnmanaged> where TUnmanaged : unmanaged
+    public readonly unsafe struct Reference<TUnmanaged> where TUnmanaged : unmanaged
     {
         // ReSharper disable once MemberCanBePrivate.Global
         public TUnmanaged* Pointer { get; }
@@ -10,15 +10,15 @@ namespace UnmanagedAPI.Pointer
 
         public bool IsNull => (IntPtr)Pointer == IntPtr.Zero;
 
-        public AllocationReference
+        public Reference
         (
-            AllocationOwner<TUnmanaged> pointer
+            Owner<TUnmanaged> pointer
         )
         {
             Pointer = pointer;
         }
 
-        public AllocationReference
+        public Reference
         (
             TUnmanaged* pointer
         )
@@ -47,45 +47,45 @@ namespace UnmanagedAPI.Pointer
 
         public static implicit operator IntPtr
         (
-            AllocationReference<TUnmanaged> allocationReference
+            Reference<TUnmanaged> reference
         )
         {
-            return (IntPtr)allocationReference.Pointer;
+            return (IntPtr)reference.Pointer;
         }
 
         public static implicit operator TUnmanaged*
         (
-            AllocationReference<TUnmanaged> pointer
+            Reference<TUnmanaged> pointer
         )
         {
             return pointer.Pointer;
         }
 
-        // Operator to convert from TUnmanaged* to AllocationReference<TUnmanaged>
-        public static implicit operator AllocationReference<TUnmanaged>
+        // Operator to convert from TUnmanaged* to Reference<TUnmanaged>
+        public static implicit operator Reference<TUnmanaged>
         (
             TUnmanaged* pointer
         )
         {
-            return new AllocationReference<TUnmanaged>(pointer);
+            return new Reference<TUnmanaged>(pointer);
         }
 
-        // Operator to convert from AllocationOwner<TUnmanaged> to AllocationReference<TUnmanaged>
-        public static implicit operator AllocationReference<TUnmanaged>
+        // Operator to convert from Owner<TUnmanaged> to Reference<TUnmanaged>
+        public static implicit operator Reference<TUnmanaged>
         (
-            AllocationOwner<TUnmanaged> pointer
+            Owner<TUnmanaged> pointer
         )
         {
-            return new AllocationReference<TUnmanaged>(pointer);
+            return new Reference<TUnmanaged>(pointer);
         }
         
-        // Override ! operator to check if AllocationReference<TUnmanaged> is null
+        // Override ! operator to check if Reference<TUnmanaged> is null
         public static TUnmanaged* operator ~
         (
-            AllocationReference<TUnmanaged> allocationReference
+            Reference<TUnmanaged> reference
         )
         {
-            return allocationReference.Pointer;
+            return reference.Pointer;
         }
 
         #endregion

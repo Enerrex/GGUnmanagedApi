@@ -25,9 +25,9 @@ public class TestPointerArray
         Assert.AreEqual(array[0], 3);
         Assert.AreEqual(array[1], 4);
 
-        Assert.AreEqual(*array.AllocationReference.ToPointer(), 3);
-        Assert.AreEqual(*array.AllocationReference.ToPointer(1), 4);
-        Assert.AreEqual(*(array.AllocationReference.ToPointer() + 1), 4);
+        Assert.AreEqual(*array.Reference.ToPointer(), 3);
+        Assert.AreEqual(*array.Reference.ToPointer(1), 4);
+        Assert.AreEqual(*(array.Reference.ToPointer() + 1), 4);
 
         Assert.ThrowsException<IndexOutOfRangeException>(() => array[2]);
 

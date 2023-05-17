@@ -11,8 +11,8 @@ namespace Core.Containers
     /// <typeparam name="TUnmanaged"></typeparam>
     public unsafe struct PointerArray<TUnmanaged> : IDisposable where TUnmanaged : unmanaged
     {
-        private AllocationOwner<TUnmanaged> AllocationOwner { get; }
-        public AllocationReference<TUnmanaged> AllocationReference => AllocationOwner.ToReference();
+        private Owner<TUnmanaged> Owner { get; }
+        public Reference<TUnmanaged> Reference => Owner.ToReference();
 
         public int Length { get; private set; }
 
@@ -23,7 +23,7 @@ namespace Core.Containers
         {
             if (length <= 0) throw new ArgumentException();
             Length = length;
-            AllocationOwner = Allocation.Create<TUnmanaged>(length);
+            Owner = Allocation.Create<TUnmanaged>(length);
         }
 
         public PointerArray
@@ -31,7 +31,7 @@ namespace Core.Containers
             TUnmanaged valueIn
         ) : this(1)
         {
-            AllocationOwner.Pointer[0] = valueIn;
+            Owner.Pointer[0] = valueIn;
         }
 
         public PointerArray
@@ -39,9 +39,9 @@ namespace Core.Containers
             PointerArray<TUnmanaged> copiedList
         ) : this(copiedList.Length)
         {
-            AllocationOwner = Allocation.Copy
+            Owner = Allocation.Copy
             (
-                copiedList.AllocationOwner.ToReference(),
+                copiedList.Owner.ToReference(),
                 Length,
                 Length
             );
@@ -49,12 +49,12 @@ namespace Core.Containers
 
         internal PointerArray
         (
-            AllocationOwner<TUnmanaged> allocationOwner,
+            Owner<TUnmanaged> owner,
             int length,
             int count
         )
         {
-            AllocationOwner = allocationOwner;
+            Owner = owner;
             Length = length;
         }
 
@@ -74,12 +74,12 @@ namespace Core.Containers
             get
             {
                 if (CheckIndexOutOfRange(index)) throw new IndexOutOfRangeException();
-                return *(AllocationOwner.Pointer + index);
+                return *(Owner.Pointer + index);
             }
             set
             {
                 if (CheckIndexOutOfRange(index)) throw new IndexOutOfRangeException();
-                *(AllocationOwner.Pointer + index) = value;
+                *(Owner.Pointer + index) = value;
             }
         }
 
@@ -87,7 +87,7 @@ namespace Core.Containers
         {
             if (Length == 0) return;
             Length = 0;
-            AllocationOwner.Dispose();
+            Owner.Dispose();
         }
     }
 }

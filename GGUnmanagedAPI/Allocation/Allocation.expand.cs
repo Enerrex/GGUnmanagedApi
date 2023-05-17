@@ -4,9 +4,9 @@ namespace UnmanagedAPI
 {
     public static partial class Allocation
     {
-        public static AllocationOwner<TUnmanaged> CopyToNew<TUnmanaged>
+        public static Owner<TUnmanaged> CopyToNew<TUnmanaged>
         (
-            in AllocationReference<TUnmanaged> copiedArray,
+            in Reference<TUnmanaged> copiedArray,
             int length,
             int targetLength
         ) where TUnmanaged : unmanaged

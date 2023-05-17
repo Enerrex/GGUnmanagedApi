@@ -4,16 +4,16 @@ namespace UnmanagedAPI.Pointer
 {
     public readonly struct AllocationSlice<TUnmanaged> where TUnmanaged : unmanaged
     {
-        private readonly AllocationReference<TUnmanaged> _allocationReference;
+        private readonly Reference<TUnmanaged> _reference;
         public readonly int Length { get; }
 
         public AllocationSlice
         (
-            AllocationReference<TUnmanaged> allocationReference,
+            Reference<TUnmanaged> reference,
             int length
         )
         {
-            _allocationReference = allocationReference;
+            _reference = reference;
             Length = length;
         }
 
@@ -26,12 +26,12 @@ namespace UnmanagedAPI.Pointer
             get
             {
                 if (index < 0 || index >= Length) throw new IndexOutOfRangeException();
-                return _allocationReference[index];
+                return _reference[index];
             }
             set
             {
                 if (index < 0 || index >= Length) throw new IndexOutOfRangeException();
-                _allocationReference[index] = value;
+                _reference[index] = value;
             }
         }
     }

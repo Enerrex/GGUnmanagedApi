@@ -9,9 +9,9 @@ namespace Core.Containers
     {
         public readonly TUnmanaged Value;
 
-        public AllocationReference<LinkedNode<TUnmanaged>> Next => _next.ToReference<LinkedNode<TUnmanaged>>();
+        public Reference<LinkedNode<TUnmanaged>> Next => _next.ToReference<LinkedNode<TUnmanaged>>();
 
-        private AllocationOwner _next;
+        private Owner _next;
 
         public LinkedNode
         (
@@ -22,7 +22,7 @@ namespace Core.Containers
             _next = default;
         }
 
-        public AllocationReference<LinkedNode<TUnmanaged>> SetNext
+        public Reference<LinkedNode<TUnmanaged>> SetNext
         (
             TUnmanaged value
         )

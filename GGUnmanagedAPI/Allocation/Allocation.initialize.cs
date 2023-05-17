@@ -4,7 +4,7 @@ namespace UnmanagedAPI
 {
     public static unsafe partial class Allocation
     {
-        public static AllocationOwner<TUnmanaged> Initialize<TUnmanaged>
+        public static Owner<TUnmanaged> Initialize<TUnmanaged>
         (
             TUnmanaged value,
             int length
@@ -16,7 +16,7 @@ namespace UnmanagedAPI
             return allocated;
         }
         
-        public static AllocationOwner<TUnmanaged> Initialize<TUnmanaged>
+        public static Owner<TUnmanaged> Initialize<TUnmanaged>
         (
             int length
         ) where TUnmanaged : unmanaged
@@ -27,7 +27,7 @@ namespace UnmanagedAPI
             return allocated;
         }
         
-        public static AllocationOwner<TUnmanaged> Initialize<TUnmanaged>
+        public static Owner<TUnmanaged> Initialize<TUnmanaged>
         (
             in TUnmanaged value
         ) where TUnmanaged : unmanaged
@@ -40,11 +40,11 @@ namespace UnmanagedAPI
 
         public static void Initialize<TUnmanaged>
         (
-            AllocationReference<TUnmanaged> allocationReference,
+            Reference<TUnmanaged> reference,
             int allocationLength
         ) where TUnmanaged : unmanaged
         {
-            for (var i = 0; i < allocationLength; i++) *(allocationReference.ToPointer() + i) = new TUnmanaged();
+            for (var i = 0; i < allocationLength; i++) *(reference.ToPointer() + i) = new TUnmanaged();
         }
     }
 }

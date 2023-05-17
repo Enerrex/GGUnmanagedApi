@@ -2,13 +2,13 @@ using System;
 
 namespace UnmanagedAPI.Pointer
 {
-    public readonly unsafe struct AllocationOwner<TUnmanaged> : IDisposable
+    public readonly unsafe struct Owner<TUnmanaged> : IDisposable
         where TUnmanaged : unmanaged
     {
         // ReSharper disable once MemberCanBePrivate.Global
         public TUnmanaged* Pointer { get; }
 
-        public AllocationOwner
+        public Owner
         (
             TUnmanaged* pointer
         )
@@ -25,9 +25,9 @@ namespace UnmanagedAPI.Pointer
             set => *(Pointer + index) = value;
         }
 
-        public AllocationReference<TUnmanaged> ToReference()
+        public Reference<TUnmanaged> ToReference()
         {
-            return new AllocationReference<TUnmanaged>(this);
+            return new Reference<TUnmanaged>(this);
         }
 
         public void Dispose()
@@ -39,34 +39,34 @@ namespace UnmanagedAPI.Pointer
 
         public static implicit operator IntPtr
         (
-            AllocationOwner<TUnmanaged> allocationOwner
+            Owner<TUnmanaged> owner
         )
         {
-            return (IntPtr)allocationOwner.Pointer;
+            return (IntPtr)owner.Pointer;
         }
 
         public static implicit operator TUnmanaged*
         (
-            AllocationOwner<TUnmanaged> pointer
+            Owner<TUnmanaged> pointer
         )
         {
             return pointer.Pointer;
         }
 
-        public static implicit operator AllocationReference<TUnmanaged>
+        public static implicit operator Reference<TUnmanaged>
         (
-            AllocationOwner<TUnmanaged> allocationOwner
+            Owner<TUnmanaged> owner
         )
         {
-            return allocationOwner.ToReference();
+            return owner.ToReference();
         }
         
         public static TUnmanaged* operator ~
         (
-            AllocationOwner<TUnmanaged> allocationReference
+            Owner<TUnmanaged> reference
         )
         {
-            return allocationReference.Pointer;
+            return reference.Pointer;
         }
 
         #endregion

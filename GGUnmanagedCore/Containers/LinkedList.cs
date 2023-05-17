@@ -9,9 +9,9 @@ namespace Core.Containers
         public int Count { get; private set; }
         public bool IsEmpty => Count == 0;
 
-        private AllocationOwner<LinkedNode<TUnmanaged>> _head;
-        public readonly AllocationReference<LinkedNode<TUnmanaged>> Head => _head.ToReference();
-        public AllocationReference<LinkedNode<TUnmanaged>> Tail { get; private set; }
+        private Owner<LinkedNode<TUnmanaged>> _head;
+        public readonly Reference<LinkedNode<TUnmanaged>> Head => _head.ToReference();
+        public Reference<LinkedNode<TUnmanaged>> Tail { get; private set; }
 
         public LinkedList
         (
