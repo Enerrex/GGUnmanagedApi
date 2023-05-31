@@ -1,33 +1,42 @@
-﻿using UnmanagedAPI;
+﻿using System;
+using UnmanagedAPI;
 using UnmanagedAPI.Iterator;
 
-namespace Core.Containers
+namespace UnmanagedCore.Containers
 {
+    // Iterator for LinkedNode<T>
+    // Starts at the head of the list and iterates through each node
     public unsafe struct NodeIterator<T> : IUnmanagedIteratorWithIndex<T> where T : unmanaged
     {
         private int _index;
-        private readonly Allocation.Reference<LinkedNode<T>> _startNode;
         private Allocation.Reference<LinkedNode<T>> _currentNode;
 
         public T Current => _currentNode.Pointer->Value;
 
         public NodeIterator
-        (Allocation.Reference<LinkedNode<T>> head
+        (
+            Allocation.Reference<LinkedNode<T>> head
         )
         {
-            _startNode = head;
-            _currentNode = default;
+            _currentNode = head;
             _index = -1;
         }
 
         public MoveNextResult MoveNext()
         {
-            if (_currentNode.IsNull && _index == -1) _currentNode = _startNode;
+            if (_index != -1)
+            {
+                _currentNode = _currentNode.Pointer->Next;
+            }
+            
+            if (!_currentNode.IsNull)
+            {
+                // Return true, and the current index
+                // Increment the index after returning
+                return (true, _index++);
+            }
 
-            if (_currentNode.IsNull) return (false, _index);
-            _currentNode = _currentNode.Pointer->Next;
-            _index++;
-            return (!_currentNode.IsNull, _index);
+            return (false, _index);
         }
     }
 }

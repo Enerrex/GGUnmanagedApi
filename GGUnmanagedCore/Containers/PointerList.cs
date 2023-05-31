@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using UnmanagedAPI;
 
-namespace Core.Containers
+namespace UnmanagedCore.Containers
 {
     /// <summary>
     ///     WARN: This struct has a functionality to expand infinitely as long as elements are added.
@@ -12,6 +12,7 @@ namespace Core.Containers
     public unsafe struct PointerList<TUnmanaged> : IDisposable where TUnmanaged : unmanaged
     {
         private Allocation.Owner<TUnmanaged> _owner;
+        public Allocation.Reference<TUnmanaged> Reference => _owner.ToReference();
 
         public int Capacity { get; private set; }
         public int Count { get; private set; }

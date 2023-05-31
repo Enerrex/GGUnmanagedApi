@@ -4,7 +4,7 @@ namespace UnmanagedAPI
 {
     public static partial class Allocation
     {
-        public readonly unsafe struct Reference<TUnmanaged> where TUnmanaged : unmanaged
+        public readonly unsafe struct Reference<TUnmanaged> : IAllocation where TUnmanaged : unmanaged
         {
             // ReSharper disable once MemberCanBePrivate.Global
             public TUnmanaged* Pointer { get; }

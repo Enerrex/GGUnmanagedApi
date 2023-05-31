@@ -1,7 +1,7 @@
 ﻿using System;
 using UnmanagedAPI;
 
-namespace Core.Containers
+namespace UnmanagedCore.Containers
 {
     /// <summary>
     ///     WARN: This struct has a functionality to expand infinitely as long as elements are added.

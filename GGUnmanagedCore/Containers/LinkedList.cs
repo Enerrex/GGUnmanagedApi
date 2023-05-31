@@ -1,7 +1,7 @@
 ﻿using System;
 using UnmanagedAPI;
 
-namespace Core.Containers
+namespace UnmanagedCore.Containers
 {
     public unsafe struct LinkedList<TUnmanaged> : IDisposable where TUnmanaged : unmanaged
     {

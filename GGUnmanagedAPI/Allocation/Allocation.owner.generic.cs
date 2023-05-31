@@ -4,11 +4,14 @@ namespace UnmanagedAPI
 {
     public static partial class Allocation
     {
-        public readonly unsafe struct Owner<TUnmanaged> : IDisposable
+        public readonly unsafe struct Owner<TUnmanaged> : IDisposable, IAllocation
             where TUnmanaged : unmanaged
         {
             // ReSharper disable once MemberCanBePrivate.Global
             public TUnmanaged* Pointer { get; }
+            public IntPtr IntPtr => (IntPtr)Pointer;
+            
+            public bool IsNull => (IntPtr)Pointer == IntPtr.Zero;
 
             public Owner
             (

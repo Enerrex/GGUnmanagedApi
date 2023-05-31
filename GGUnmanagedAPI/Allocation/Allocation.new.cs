@@ -12,7 +12,7 @@
                 (TUnmanaged*)Malloc<TUnmanaged>
                 (
                     length
-                ).Pointer
+                ).IntPtr
             );
         }
 

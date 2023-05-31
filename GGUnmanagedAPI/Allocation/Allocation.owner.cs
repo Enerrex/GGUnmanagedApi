@@ -4,28 +4,28 @@ namespace UnmanagedAPI
 {
     public static partial class Allocation
     {
-        public readonly unsafe struct Owner
+        public readonly unsafe struct Owner : IAllocation, IDisposable
         {
-            public IntPtr Pointer { get; }
-
-            public bool IsNull => Pointer == IntPtr.Zero;
-
+            public IntPtr IntPtr { get; }
+            
+            public bool IsNull => IntPtr == IntPtr.Zero;
+            
             public Owner
             (
-                IntPtr pointer
+                IntPtr intPtr
             )
             {
-                Pointer = pointer;
+                IntPtr = intPtr;
             }
 
             public Reference<TUnmanaged> ToReference<TUnmanaged>() where TUnmanaged : unmanaged
             {
-                return new Reference<TUnmanaged>((TUnmanaged*)Pointer);
+                return new Reference<TUnmanaged>((TUnmanaged*)IntPtr);
             }
 
             public TUnmanaged* As<TUnmanaged>() where TUnmanaged : unmanaged
             {
-                return (TUnmanaged*)Pointer;
+                return (TUnmanaged*)IntPtr;
             }
             
             public static IntPtr operator ~
@@ -33,7 +33,7 @@ namespace UnmanagedAPI
                 Owner reference
             )
             {
-                return reference.Pointer;
+                return reference.IntPtr;
             }
 
 
@@ -41,8 +41,6 @@ namespace UnmanagedAPI
             {
                 Delete(this);
             }
-            
-            
         }
     }
 }

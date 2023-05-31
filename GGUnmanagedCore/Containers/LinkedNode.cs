@@ -1,12 +1,12 @@
 ﻿using System;
 using UnmanagedAPI;
 
-namespace Core.Containers
+namespace UnmanagedCore.Containers
 {
     public unsafe struct LinkedNode<TUnmanaged> : IDisposable
         where TUnmanaged : unmanaged
     {
-        public readonly TUnmanaged Value;
+        public TUnmanaged Value;
 
         public Allocation.Reference<LinkedNode<TUnmanaged>> Next => _next.ToReference<LinkedNode<TUnmanaged>>();
 
