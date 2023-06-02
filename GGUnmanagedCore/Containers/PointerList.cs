@@ -65,7 +65,7 @@ namespace UnmanagedCore.Containers
             int index
         )
         {
-            return index < 0 || index >= Count;
+            return index < 0 || index >= Capacity;
         }
 
         public TUnmanaged this
@@ -101,10 +101,12 @@ namespace UnmanagedCore.Containers
         (
             TUnmanaged value
         )
-        {
+        {                
+            // Double the length if the count exceeds the length
             if (CheckCapacityExceeded(Count))
-                // Double the length if the count exceeds the length
+            {
                 ExpandCapacity(Capacity * 2);
+            }
             _owner[Count] = value;
             Count++;
         }
