@@ -1,5 +1,6 @@
 ﻿using System;
 using UnmanagedAPI;
+using UnmanagedAPI.Containers;
 
 namespace UnmanagedCore.Containers
 {
@@ -8,11 +9,10 @@ namespace UnmanagedCore.Containers
     ///     Every time length is reached, the array is reallocated at ~twice the previous size.
     /// </summary>
     /// <typeparam name="TUnmanaged"></typeparam>
-    public unsafe struct PointerArray<TUnmanaged> : IDisposable where TUnmanaged : unmanaged
+    public unsafe struct PointerArray<TUnmanaged> : IPointerStorage<TUnmanaged>, IDisposable where TUnmanaged : unmanaged
     {
         private Allocation.Owner<TUnmanaged> Owner { get; }
         public Allocation.Reference<TUnmanaged> Reference => Owner.ToReference();
-
         public int Length { get; private set; }
 
         public PointerArray
@@ -47,7 +47,8 @@ namespace UnmanagedCore.Containers
         }
 
         internal PointerArray
-        (Allocation.Owner<TUnmanaged> owner,
+        (
+            Allocation.Owner<TUnmanaged> owner,
             int length,
             int count
         )
@@ -79,6 +80,23 @@ namespace UnmanagedCore.Containers
                 if (CheckIndexOutOfRange(index)) throw new IndexOutOfRangeException();
                 *(Owner.Pointer + index) = value;
             }
+        }
+        
+        public Allocation.Slice<TUnmanaged> GetSlice
+        (
+            int startIndex = 0,
+            int? length = null
+        )
+        {
+            int length_value = length ?? Length - startIndex;
+            if (CheckIndexOutOfRange(startIndex)) throw new IndexOutOfRangeException();
+            if (CheckIndexOutOfRange(startIndex + length_value - 1)) throw new IndexOutOfRangeException();
+            return new Allocation.Slice<TUnmanaged>
+            (
+                Owner.ToReference(),
+                startIndex,
+                length_value
+            );
         }
 
         public void Dispose()

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using UnmanagedAPI;
+using UnmanagedAPI.Containers;
+using UnmanagedAPI.Iterator;
+using UnmanagedCore.Containers.Iterators;
 
 namespace UnmanagedCore.Containers
 {
@@ -9,7 +12,10 @@ namespace UnmanagedCore.Containers
     ///     Every time length is reached, the array is reallocated at ~twice the previous size.
     /// </summary>
     /// <typeparam name="TUnmanaged"></typeparam>
-    public unsafe struct PointerList<TUnmanaged> : IDisposable where TUnmanaged : unmanaged
+    public unsafe struct PointerList<TUnmanaged> :
+        IPointerStorage<TUnmanaged>,
+        IDisposable
+        where TUnmanaged : unmanaged
     {
         private Allocation.Owner<TUnmanaged> _owner;
         public Allocation.Reference<TUnmanaged> Reference => _owner.ToReference();
@@ -32,7 +38,7 @@ namespace UnmanagedCore.Containers
             TUnmanaged valueIn
         ) : this(1)
         {
-            _owner[0] = valueIn;
+            *(_owner.Pointer) = valueIn;
         }
 
         public PointerList
@@ -76,13 +82,30 @@ namespace UnmanagedCore.Containers
             get
             {
                 if (CheckIndexOutOfRange(index)) throw new IndexOutOfRangeException();
-                return _owner[index];
+                return *(_owner.Pointer + index);
             }
             set
             {
                 if (CheckIndexOutOfRange(index)) throw new IndexOutOfRangeException();
-                _owner[index] = value;
+                *(_owner.Pointer + index) = value;
             }
+        }
+        
+        public Allocation.Slice<TUnmanaged> GetSlice
+        (
+            int startIndex = 0,
+            int? length = null
+        )
+        {
+            int length_value = length ?? Count - startIndex;
+            if (CheckIndexOutOfRange(startIndex)) throw new IndexOutOfRangeException();
+            if (CheckIndexOutOfRange(startIndex + length_value - 1)) throw new IndexOutOfRangeException();
+            return new Allocation.Slice<TUnmanaged>
+            (
+                Reference,
+                startIndex,
+                length_value
+            );
         }
 
         public TUnmanaged Get
@@ -101,13 +124,13 @@ namespace UnmanagedCore.Containers
         (
             TUnmanaged value
         )
-        {                
+        {
             // Double the length if the count exceeds the length
             if (CheckCapacityExceeded(Count))
             {
                 ExpandCapacity(Capacity * 2);
             }
-            _owner[Count] = value;
+            *_owner.Pointer = value;
             Count++;
         }
 
@@ -156,6 +179,11 @@ namespace UnmanagedCore.Containers
             Capacity = updatedCapacity;
             _owner.Dispose();
             _owner = new_storage;
+        }
+
+        public readonly PointerList<TUnmanaged> GetCopy()
+        {
+            return new PointerList<TUnmanaged>(this);
         }
 
         public void Dispose()

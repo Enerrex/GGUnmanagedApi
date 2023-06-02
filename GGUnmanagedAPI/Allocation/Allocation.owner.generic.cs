@@ -4,7 +4,7 @@ namespace UnmanagedAPI
 {
     public static partial class Allocation
     {
-        public readonly unsafe struct Owner<TUnmanaged> : IDisposable, IAllocation
+        public readonly unsafe struct Owner<TUnmanaged> : IDisposable, IAllocationGeneric<TUnmanaged>
             where TUnmanaged : unmanaged
         {
             // ReSharper disable once MemberCanBePrivate.Global
@@ -20,14 +20,21 @@ namespace UnmanagedAPI
             {
                 Pointer = pointer;
             }
-
-            public TUnmanaged this
-            [
-                int index
-            ]
+            
+            public TUnmanaged* ToPointer
+            (
+                int index = 0
+            )
             {
-                get => *(Pointer + index);
-                set => *(Pointer + index) = value;
+                return Pointer + index;
+            }
+
+            public Slice<TUnmanaged> GetSlice
+            (
+                int length
+            )
+            {
+                return new Slice<TUnmanaged>(ToReference(), length);
             }
 
             public Reference<TUnmanaged> ToReference()

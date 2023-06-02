@@ -8,6 +8,15 @@ namespace UnmanagedAPI
         {
             public IntPtr IntPtr { get; }
             public bool IsNull { get; }
+            
+        }
+        
+        public interface IAllocationGeneric<TUnmanaged> : IAllocation where TUnmanaged : unmanaged
+        {
+            public TUnmanaged* ToPointer
+            (
+                int index = 0
+            );
         }
     }
 }

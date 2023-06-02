@@ -25,11 +25,9 @@ public unsafe class TestAllocationOwner
 
         Assert.AreEqual(*allocated.Pointer, 1337);
         Assert.AreEqual(allocated.Pointer[0], 1337);
-        Assert.AreEqual(allocated[0], 1337);
 
         Assert.AreEqual(*(allocated.Pointer + 1), 1338);
         Assert.AreEqual(allocated.Pointer[1], 1338);
-        Assert.AreEqual(allocated[1], 1338);
     }
 
     [TestMethod]

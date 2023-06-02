@@ -1,8 +1,7 @@
-﻿using System;
-using UnmanagedAPI;
+﻿using UnmanagedAPI;
 using UnmanagedAPI.Iterator;
 
-namespace UnmanagedCore.Containers
+namespace UnmanagedCore.Containers.Iterators
 {
     // Iterator for LinkedNode<T>
     // Starts at the head of the list and iterates through each node

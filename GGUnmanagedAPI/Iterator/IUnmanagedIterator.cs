@@ -1,9 +1,9 @@
 ﻿namespace UnmanagedAPI.Iterator
 {
-    public interface IUnmanagedIteratorBase<out TNode, out THasNext> where TNode : unmanaged
+    public interface IUnmanagedIteratorBase<out TNode, out TResult> where TNode : unmanaged
     {
         TNode Current { get; }
-        THasNext MoveNext();
+        TResult MoveNext();
     }
 
     public interface IUnmanagedIterator<TNode> : IUnmanagedIteratorBase<TNode, bool> where TNode : unmanaged

@@ -1,7 +1,7 @@
 ﻿using UnmanagedAPI;
 using UnmanagedAPI.Iterator;
 
-namespace UnmanagedCore.Containers
+namespace UnmanagedCore.Containers.Iterators
 {
     public struct ArrayIterator<TUnmanaged> : IUnmanagedIteratorWithIndex<TUnmanaged> where TUnmanaged : unmanaged
     {

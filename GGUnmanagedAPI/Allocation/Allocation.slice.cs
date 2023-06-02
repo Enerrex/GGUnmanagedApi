@@ -7,7 +7,7 @@ namespace UnmanagedAPI
         public readonly struct Slice<TUnmanaged> where TUnmanaged : unmanaged
         {
             private readonly Reference<TUnmanaged> _reference;
-            public readonly int Length { get; }
+            public int Length { get; }
 
             public Slice
             (
@@ -18,9 +18,20 @@ namespace UnmanagedAPI
                 _reference = reference;
                 Length = length;
             }
+            
+            public unsafe Slice
+            (
+                Reference<TUnmanaged> reference,
+                int startIndex,
+                int length
+            )
+            {
+                _reference = new Reference<TUnmanaged>(~reference + startIndex);
+                Length = length;
+            }
 
             // Indexer with bounds checking.
-            public TUnmanaged this
+            public unsafe TUnmanaged this
             [
                 int index
             ]
@@ -28,12 +39,13 @@ namespace UnmanagedAPI
                 get
                 {
                     if (index < 0 || index >= Length) throw new IndexOutOfRangeException();
-                    return _reference[index];
+                    return *(_reference.Pointer + index);
+
                 }
                 set
                 {
                     if (index < 0 || index >= Length) throw new IndexOutOfRangeException();
-                    _reference[index] = value;
+                    *(_reference.Pointer + index) = value;
                 }
             }
         }

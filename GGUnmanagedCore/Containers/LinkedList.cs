@@ -1,9 +1,13 @@
 ﻿using System;
 using UnmanagedAPI;
+using UnmanagedAPI.Iterator;
+using UnmanagedCore.Containers.Iterators;
 
 namespace UnmanagedCore.Containers
 {
-    public unsafe struct LinkedList<TUnmanaged> : IDisposable where TUnmanaged : unmanaged
+    public unsafe struct LinkedList<TUnmanaged> : 
+        IDisposable
+        where TUnmanaged : unmanaged
     {
         public int Count { get; private set; }
         public bool IsEmpty => Count == 0;
@@ -76,11 +80,6 @@ namespace UnmanagedCore.Containers
             }
 
             return new_list;
-        }
-
-        public readonly NodeIterator<TUnmanaged> GetIterator()
-        {
-            return new NodeIterator<TUnmanaged>(Head.Pointer);
         }
 
         public void Dispose()
