@@ -5,7 +5,7 @@
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Title>GG Unmanaged Core</Title>
-        <Version>1.0.0</Version>
+        <Version>1.0.1</Version>
         <RootNamespace>UnmanagedCore</RootNamespace>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Authors>Package Deal, Joseph Pritchett</Authors>
