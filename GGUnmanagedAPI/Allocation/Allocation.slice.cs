@@ -7,6 +7,7 @@ namespace UnmanagedAPI
         public readonly struct Slice<TUnmanaged> where TUnmanaged : unmanaged
         {
             private readonly Reference<TUnmanaged> _reference;
+            public static Slice<TUnmanaged> Null => new Slice<TUnmanaged>(Reference<TUnmanaged>.Null, -1);
             public int Length { get; }
 
             public Slice
@@ -18,7 +19,7 @@ namespace UnmanagedAPI
                 _reference = reference;
                 Length = length;
             }
-            
+
             public unsafe Slice
             (
                 Reference<TUnmanaged> reference,

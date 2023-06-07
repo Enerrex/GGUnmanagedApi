@@ -12,6 +12,9 @@ namespace UnmanagedAPI
             public IntPtr IntPtr => (IntPtr)Pointer;
 
             public bool IsNull => (IntPtr)Pointer == IntPtr.Zero;
+            
+            public static Reference<TUnmanaged> Null => new Reference<TUnmanaged>((TUnmanaged*) IntPtr.Zero);
+
 
             public Reference
             (

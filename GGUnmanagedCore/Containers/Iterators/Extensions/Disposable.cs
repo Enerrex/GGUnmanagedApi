@@ -13,18 +13,5 @@ namespace UnmanagedCore.Containers.Iterators.Extensions
         {
             item.Dispose();
         }
-
-        public static void Dispose<TUnmanaged, TIterator>
-        (
-            this TIterator items
-        )
-            where TUnmanaged : unmanaged, IDisposable
-            where TIterator : unmanaged, IUnmanagedIterator<TUnmanaged>
-        {
-            while (items.MoveNext())
-            {
-                
-            }
-        }
     }
 }

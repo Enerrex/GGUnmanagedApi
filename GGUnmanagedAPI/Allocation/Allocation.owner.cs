@@ -10,6 +10,9 @@ namespace UnmanagedAPI
             
             public bool IsNull => IntPtr == IntPtr.Zero;
             
+            public static Owner Null => new Owner(IntPtr.Zero);
+
+            
             public Owner
             (
                 IntPtr intPtr

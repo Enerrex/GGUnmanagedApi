@@ -38,7 +38,8 @@ namespace UnmanagedCore.Containers
             TUnmanaged valueIn
         ) : this(1)
         {
-            *(_owner.Pointer) = valueIn;
+            // Will add the value and increment count for us
+            Add(valueIn);
         }
 
         public PointerList
@@ -82,12 +83,12 @@ namespace UnmanagedCore.Containers
             get
             {
                 if (CheckIndexOutOfRange(index)) throw new IndexOutOfRangeException();
-                return *(_owner.Pointer + index);
+                return *_owner.ToPointer(index);
             }
             set
             {
                 if (CheckIndexOutOfRange(index)) throw new IndexOutOfRangeException();
-                *(_owner.Pointer + index) = value;
+                *_owner.ToPointer(index) = value;
             }
         }
         
@@ -98,6 +99,7 @@ namespace UnmanagedCore.Containers
         )
         {
             int length_value = length ?? Count - startIndex;
+            if (_owner.IsNull) throw new NullReferenceException();
             if (CheckIndexOutOfRange(startIndex)) throw new IndexOutOfRangeException();
             if (CheckIndexOutOfRange(startIndex + length_value - 1)) throw new IndexOutOfRangeException();
             return new Allocation.Slice<TUnmanaged>
@@ -113,8 +115,9 @@ namespace UnmanagedCore.Containers
             int index
         )
         {
-            return this[index];
+            return *_owner.ToPointer(index);
         }
+        
 
         /// <summary>
         ///     Adds a new element. Expands the array if Count exceeds to Length
@@ -130,7 +133,8 @@ namespace UnmanagedCore.Containers
             {
                 ExpandCapacity(Capacity * 2);
             }
-            *_owner.Pointer = value;
+            
+            *_owner.ToPointer(Count) = value;
             Count++;
         }
 
@@ -190,6 +194,9 @@ namespace UnmanagedCore.Containers
         {
             if (Capacity == 0) return;
             _owner.Dispose();
+            _owner = Allocation.Owner<TUnmanaged>.Null;
+            Capacity = 0;
+            Count = 0;
         }
     }
 }

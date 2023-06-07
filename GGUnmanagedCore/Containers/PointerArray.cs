@@ -11,9 +11,15 @@ namespace UnmanagedCore.Containers
     /// <typeparam name="TUnmanaged"></typeparam>
     public unsafe struct PointerArray<TUnmanaged> : IPointerStorage<TUnmanaged>, IDisposable where TUnmanaged : unmanaged
     {
-        private Allocation.Owner<TUnmanaged> Owner { get; }
+        private Allocation.Owner<TUnmanaged> _owner;
+        private int _length;
+        private readonly Allocation.Owner<TUnmanaged> Owner => _owner;
         public Allocation.Reference<TUnmanaged> Reference => Owner.ToReference();
-        public int Length { get; private set; }
+        public int Length
+        {
+            readonly get => _length;
+            private set => _length = value;
+        }
 
         public PointerArray
         (
@@ -22,7 +28,7 @@ namespace UnmanagedCore.Containers
         {
             if (length <= 0) throw new ArgumentException();
             Length = length;
-            Owner = Allocation.Create<TUnmanaged>(length);
+            _owner = Allocation.Create<TUnmanaged>(length);
         }
 
         public PointerArray
@@ -38,23 +44,12 @@ namespace UnmanagedCore.Containers
             PointerArray<TUnmanaged> copiedList
         ) : this(copiedList.Length)
         {
-            Owner = Allocation.Copy
+            _owner = Allocation.Copy
             (
                 copiedList.Owner.ToReference(),
                 Length,
                 Length
             );
-        }
-
-        internal PointerArray
-        (
-            Allocation.Owner<TUnmanaged> owner,
-            int length,
-            int count
-        )
-        {
-            Owner = owner;
-            Length = length;
         }
 
         private readonly bool CheckIndexOutOfRange
@@ -89,6 +84,10 @@ namespace UnmanagedCore.Containers
         )
         {
             int length_value = length ?? Length - startIndex;
+            // List isn't allocated, return Slice for Null
+            if (_owner.IsNull) return Allocation.Slice<TUnmanaged>.Null;
+            
+            // Check if the slice is out of range
             if (CheckIndexOutOfRange(startIndex)) throw new IndexOutOfRangeException();
             if (CheckIndexOutOfRange(startIndex + length_value - 1)) throw new IndexOutOfRangeException();
             return new Allocation.Slice<TUnmanaged>
@@ -102,8 +101,9 @@ namespace UnmanagedCore.Containers
         public void Dispose()
         {
             if (Length == 0) return;
-            Length = 0;
             Owner.Dispose();
+            Length = 0;
+            _owner = Allocation.Owner<TUnmanaged>.Null;
         }
     }
 }

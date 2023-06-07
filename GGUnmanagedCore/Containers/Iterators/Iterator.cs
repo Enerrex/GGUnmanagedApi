@@ -2,7 +2,7 @@
 
 namespace UnmanagedCore.Containers.Iterators
 {
-    public static partial class IterHelper
+    public static partial class Iterator
     {
         // Provide an iterator for a generic Slice
         public static ArrayIterator<TUnmanaged> GetIterator<TUnmanaged>

@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 
 namespace UnmanagedAPI
 {
@@ -12,6 +13,7 @@ namespace UnmanagedAPI
             public IntPtr IntPtr => (IntPtr)Pointer;
             
             public bool IsNull => (IntPtr)Pointer == IntPtr.Zero;
+            public static Owner<TUnmanaged> Null => new Owner<TUnmanaged>((TUnmanaged*) IntPtr.Zero);
 
             public Owner
             (
@@ -21,6 +23,7 @@ namespace UnmanagedAPI
                 Pointer = pointer;
             }
             
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public TUnmanaged* ToPointer
             (
                 int index = 0

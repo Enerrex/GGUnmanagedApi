@@ -87,6 +87,7 @@ namespace UnmanagedCore.Containers
             if (Head.Pointer != null) (~Head)->Dispose();
 
             _head.Dispose();
+            _head = Allocation.Owner<LinkedNode<TUnmanaged>>.Null;
         }
     }
 }

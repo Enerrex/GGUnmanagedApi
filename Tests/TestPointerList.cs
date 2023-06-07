@@ -29,6 +29,29 @@ public class TestPointerList
         Assert.ThrowsException<IndexOutOfRangeException>(() => list[2]);
     }
 
+    struct TestStruct
+    {
+        public int A;
+        public int B;
+    }
+    
+    [TestMethod]
+    public void TestValueConstructor()
+    {
+        var test_struct = new TestStruct
+        {
+            A = 69,
+            B = 2
+        };
+        
+        var list = new PointerList<TestStruct>(test_struct);
+        
+        Assert.AreEqual(1, list.Capacity);
+        Assert.AreEqual(1, list.Count);
+        Assert.AreEqual(69, list[0].A);
+        Assert.AreEqual(2, list[0].B);
+    }
+
     [TestMethod]
     public void TestExpand()
     {
