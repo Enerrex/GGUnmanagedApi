@@ -5,7 +5,7 @@ namespace UnmanagedCore.Containers.Iterators
     public static partial class Iterator
     {
         // Provide an iterator for a generic Slice
-        public static ArrayIterator<TUnmanaged> GetIterator<TUnmanaged>
+        public static ArrayIterator<TUnmanaged> Get<TUnmanaged>
         (
             Allocation.Slice<TUnmanaged> head
         )
@@ -15,7 +15,7 @@ namespace UnmanagedCore.Containers.Iterators
         }
 
         // Provide iterator for PointerList<T>
-        public static ArrayIterator<TUnmanaged> GetIterator<TUnmanaged>
+        public static ArrayIterator<TUnmanaged> Get<TUnmanaged>
         (
             PointerList<TUnmanaged> list,
             int? start = null
@@ -27,7 +27,7 @@ namespace UnmanagedCore.Containers.Iterators
         }
         
         // Provide iterator for PointerArray<T>
-        public static ArrayIterator<TUnmanaged> GetIterator<TUnmanaged>
+        public static ArrayIterator<TUnmanaged> Get<TUnmanaged>
         (
             PointerArray<TUnmanaged> array,
             int? start = null
@@ -39,7 +39,7 @@ namespace UnmanagedCore.Containers.Iterators
         }
         
         // Provide iterator for LinkedList<T>
-        public static NodeIterator<TUnmanaged> GetIterator<TUnmanaged>
+        public static NodeIterator<TUnmanaged> Get<TUnmanaged>
         (
             LinkedList<TUnmanaged> list
         )

@@ -10,6 +10,7 @@ namespace UnmanagedAPI.Extensions
         )
             where TUnmanaged : unmanaged, IDisposable
         {
+            if (item.IsNull) return;
             item.Pointer->Dispose();
         }
         
@@ -19,6 +20,7 @@ namespace UnmanagedAPI.Extensions
         )
             where TUnmanaged : unmanaged, IDisposable
         {
+            if (item.IsNull) return;
             item.Pointer->Dispose();
         }
         
@@ -28,6 +30,7 @@ namespace UnmanagedAPI.Extensions
         )
             where TUnmanaged : unmanaged, IDisposable
         {
+            if (item.IsNull) return;
             item.As<TUnmanaged>()->Dispose();
         }
         
@@ -37,6 +40,7 @@ namespace UnmanagedAPI.Extensions
         )
             where TUnmanaged : unmanaged, IDisposable
         {
+            if (item.IsNull) return;
             item.Pointer->Dispose();
             item.Dispose();
         }
@@ -47,6 +51,7 @@ namespace UnmanagedAPI.Extensions
         )
             where TUnmanaged : unmanaged, IDisposable
         {
+            if (item.IsNull) return;
             item.As<TUnmanaged>()->Dispose();
             item.Dispose();
         }

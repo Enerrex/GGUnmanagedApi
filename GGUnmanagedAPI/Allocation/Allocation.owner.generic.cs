@@ -47,6 +47,7 @@ namespace UnmanagedAPI
 
             public void Dispose()
             {
+                if (IsNull) return;
                 Delete(this);
             }
 
