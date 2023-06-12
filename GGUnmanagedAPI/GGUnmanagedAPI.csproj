@@ -11,4 +11,8 @@
         <Authors>Package Deal, Joseph Pritchett</Authors>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <DefineConstants>TRACE; ALLOC_DEBUG</DefineConstants>
+    </PropertyGroup>
+
 </Project>

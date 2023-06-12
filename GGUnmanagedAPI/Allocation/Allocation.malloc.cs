@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace UnmanagedAPI
@@ -25,6 +26,9 @@ namespace UnmanagedAPI
                 ((long)memory_pointer + alignment - 1) & ~(alignment - 1)
             );
 
+#if ALLOC_DEBUG
+            Debug.RegisterAllocation(aligned_memory_pointer);
+#endif
             return new Owner(aligned_memory_pointer);
         }
 

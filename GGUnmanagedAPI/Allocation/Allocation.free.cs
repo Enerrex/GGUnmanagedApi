@@ -13,6 +13,9 @@ namespace UnmanagedAPI
             if (memoryPointer == IntPtr.Zero)
                 throw new ArgumentException("Cannot free a zero memory pointer.", "memoryPointer");
 
+#if ALLOC_DEBUG
+            Debug.RegisterDeallocation(memoryPointer);
+#endif
             Marshal.FreeHGlobal(memoryPointer);
         }
     }

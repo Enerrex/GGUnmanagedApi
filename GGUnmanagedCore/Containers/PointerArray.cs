@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using UnmanagedAPI;
 using UnmanagedAPI.Containers;
+using UnmanagedCore.Debug.Proxies;
 
 namespace UnmanagedCore.Containers
 {
@@ -9,6 +11,8 @@ namespace UnmanagedCore.Containers
     ///     Every time length is reached, the array is reallocated at ~twice the previous size.
     /// </summary>
     /// <typeparam name="TUnmanaged"></typeparam>
+    [DebuggerTypeProxy(typeof(PointerArrayProxy<>))]
+
     public unsafe struct PointerArray<TUnmanaged> : IPointerStorage<TUnmanaged>, IDisposable where TUnmanaged : unmanaged
     {
         private Allocation.Owner<TUnmanaged> _owner;

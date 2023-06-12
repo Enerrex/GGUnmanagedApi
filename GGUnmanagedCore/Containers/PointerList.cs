@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using UnmanagedAPI;
 using UnmanagedAPI.Containers;
 using UnmanagedAPI.Iterator;
 using UnmanagedCore.Containers.Iterators;
+using UnmanagedCore.Debug.Proxies;
 
 namespace UnmanagedCore.Containers
 {
@@ -12,6 +14,7 @@ namespace UnmanagedCore.Containers
     ///     Every time length is reached, the array is reallocated at ~twice the previous size.
     /// </summary>
     /// <typeparam name="TUnmanaged"></typeparam>
+    [DebuggerTypeProxy(typeof(PointerListProxy<>))]
     public unsafe struct PointerList<TUnmanaged> :
         IPointerStorage<TUnmanaged>,
         IDisposable
