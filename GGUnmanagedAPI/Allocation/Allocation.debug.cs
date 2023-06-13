@@ -34,6 +34,14 @@ namespace UnmanagedAPI
                 {
                     return (int)ID;
                 }
+                
+                // Sort function, should sort by Pointer and ID such that when sorting a list of allocations, the list
+                // will contain AllocationInfo's grouped by pointer in the order of their creation.
+                public static int Sort(AllocationInfo a, AllocationInfo b)
+                {
+                    if (a.Pointer == b.Pointer) return a.ID.CompareTo(b.ID);
+                    return a.Pointer.ToInt64().CompareTo(b.Pointer.ToInt64());
+                }
 
                 public AllocationInfo(Demarker demarker, IntPtr pointer, Event eventType, string callingFunction = "")
                 {
@@ -80,13 +88,13 @@ namespace UnmanagedAPI
                 }
             }
 
-            
+
             // String name, int index of starting point in AllocationStack
             public static readonly List<Demarker> DemarkerStack = new List<Demarker>(new[]
             {
                 new Demarker { Name = "Start", Index = 0 }
             });
-            
+
             public static readonly List<AllocationInfo> AllocationEventStack = new List<AllocationInfo>
             (
                 new[]
@@ -140,6 +148,13 @@ namespace UnmanagedAPI
                 public Demarker End;
             }
 
+            public static List<AllocationLife> GetLifeTimes(params long[] targets)
+            {
+                // Convert longs to IntPtrs
+                var pointers = targets.Select(l => new IntPtr(l)).ToArray();
+                return GetLifeTimes(pointers);
+            }
+
             // Get the lifetime of every allocation
             // A lifetime is an AllocationLife object where we record the start and end demarker
             // Each IntPtr can have multiple, non-overlapping lifetimes
@@ -150,51 +165,98 @@ namespace UnmanagedAPI
                 var lifetimes = new List<AllocationLife>();
 
                 var pointers = targets.Length == 0 ? AllocationMap.Keys.ToList() : targets.ToList();
+                // Sort by pointer
+                pointers.Sort((a, b) => a.ToInt64().CompareTo(b.ToInt64()));
 
-                // Iterate through all allocated pointers
-                foreach (var pointer in pointers)
+                // Copy AllocationEventStack
+                var sortedEvents = AllocationEventStack.ToList();
+                // Remove all events that are not in the target list -- this will also remove the boundary events
+                sortedEvents.RemoveAll(e => !pointers.Contains(e.Pointer));
+                // Sort by pointer and ID
+                sortedEvents.Sort(AllocationInfo.Sort);
+                
+                // No matching events
+                if (sortedEvents.Count == 0) return lifetimes;
+
+                // Iterate through all events in 2's
+                // The first event will always be an allocation
+                // The second event will either be an allocation or a deallocation
+                // If the second event is an allocation, we have reached the end of the current pointer's lifetimes
+                var start_ix = 0;
+                var event_ix = 1;
+
+                // Only one event in the list
+                if (event_ix >= sortedEvents.Count)
                 {
-                    // Get the allocation events for the pointer
-                    var events = GetEventsForPointer(pointer);
-                    // Iterate through all events
-                    for (var event_ix = 0; event_ix < events.Count; event_ix++)
+                    lifetimes.Add
+                    (
+                        new AllocationLife
+                        {
+                            Pointer = sortedEvents[start_ix].Pointer,
+                            Start = sortedEvents[start_ix].Demarker,
+                            End = NEVER
+                        }
+                    );
+                    return lifetimes;
+                }
+
+                AllocationInfo start_event;
+                AllocationInfo next_event;
+                while (event_ix < sortedEvents.Count)
+                {
+                    start_event = sortedEvents[start_ix];
+                    next_event = sortedEvents[event_ix];
+
+                    if (start_event.Pointer == next_event.Pointer)
                     {
-                        var allocationInfo = events[event_ix];
-                        // If the event is an allocation, skip it
-                        if (allocationInfo.Event == Event.Allocation) continue;
-                        // If the event is a deallocation, we have found the end of the lifetime
-                        // Get the start demarker
-                        var start = events[event_ix - 1].Demarker;
-                        // Get the end demarker
-                        var end = allocationInfo.Demarker;
-                        // Add the lifetime to the list
+                        // If the next event is a deallocation, we have reached the end of the current lifetime
+                        // Add the current lifetime to the list
                         lifetimes.Add
                         (
                             new AllocationLife
                             {
-                                Pointer = pointer,
-                                Start = start,
-                                End = end
+                                Pointer = start_event.Pointer,
+                                Start = start_event.Demarker,
+                                End = next_event.Demarker
                             }
                         );
+                        start_ix += 2;
+                        event_ix += 2;
                     }
 
-                    // If events is ODD, then add a lifetime with the end demarker set to NEVER
-                    if (events.Count % 2 == 1)
+                    // Current event is not matched to the current pointer
+                    // This means that the current pointer has no deallocation event
+                    // Add the current lifetime to the list
+                    if (start_event.Pointer != next_event.Pointer)
                     {
-                        var start = events[events.Count - 1].Demarker;
                         lifetimes.Add
                         (
                             new AllocationLife
                             {
-                                Pointer = pointer,
-                                Start = start,
+                                Pointer = start_event.Pointer,
+                                Start = start_event.Demarker,
                                 End = NEVER
                             }
                         );
+                        start_ix++;
+                        event_ix++;
                     }
                 }
-
+                
+                if (start_ix < sortedEvents.Count)
+                {
+                    start_event = sortedEvents[start_ix];
+                    lifetimes.Add
+                    (
+                        new AllocationLife
+                        {
+                            Pointer = start_event.Pointer,
+                            Start = start_event.Demarker,
+                            End = NEVER
+                        }
+                    );
+                }
+                
                 return lifetimes;
             }
 
@@ -246,7 +308,7 @@ namespace UnmanagedAPI
                 (
                     CreateInfo(pointer, Event.Deallocation)
                 );
-                
+
                 // The initial allocation should prepopulate the deallocation map
                 // with the pointer and a reference count of 0 such that the first
                 // deallocation will increment the reference count to 1.
@@ -270,7 +332,8 @@ namespace UnmanagedAPI
                 // Construct a string of the form "DeclaringType -> Method Name"
                 var calling_function = new StackTrace().GetFrame(5).GetMethod();
                 var calling_function_name = $"{calling_function.DeclaringType} -> {calling_function.Name}";
-                return new AllocationInfo(demarker ?? GetMostRecentDemarker(), pointer, eventType, calling_function_name);
+                return new AllocationInfo(demarker ?? GetMostRecentDemarker(), pointer, eventType,
+                    calling_function_name);
             }
 
             private static Demarker GetMostRecentDemarker()
