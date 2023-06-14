@@ -6,7 +6,7 @@ namespace UnmanagedAPI.Extensions
     {
         public static unsafe void DisposeUnderlying<TUnmanaged>
         (
-            this UnmanagedAPI.Allocation.Reference<TUnmanaged> item
+            this Allocation.Reference<TUnmanaged> item
         )
             where TUnmanaged : unmanaged, IDisposable
         {
@@ -16,7 +16,7 @@ namespace UnmanagedAPI.Extensions
         
         public static unsafe void DisposeUnderlying<TUnmanaged>
         (
-            this UnmanagedAPI.Allocation.Owner<TUnmanaged> item
+            this Allocation.Owner<TUnmanaged> item
         )
             where TUnmanaged : unmanaged, IDisposable
         {
@@ -26,7 +26,7 @@ namespace UnmanagedAPI.Extensions
         
         public static unsafe void DisposeUnderlying<TUnmanaged>
         (
-            this UnmanagedAPI.Allocation.Owner item
+            this Allocation.Owner item
         )
             where TUnmanaged : unmanaged, IDisposable
         {
@@ -36,7 +36,7 @@ namespace UnmanagedAPI.Extensions
         
         public static unsafe void DisposeWithUnderlying<TUnmanaged>
         (
-            this UnmanagedAPI.Allocation.Owner<TUnmanaged> item
+            this Allocation.Owner<TUnmanaged> item
         )
             where TUnmanaged : unmanaged, IDisposable
         {
@@ -47,7 +47,7 @@ namespace UnmanagedAPI.Extensions
         
         public static unsafe void DisposeWithUnderlying<TUnmanaged>
         (
-            this UnmanagedAPI.Allocation.Owner item
+            this Allocation.Owner item
         )
             where TUnmanaged : unmanaged, IDisposable
         {

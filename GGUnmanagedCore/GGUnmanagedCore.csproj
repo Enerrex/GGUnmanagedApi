@@ -15,8 +15,4 @@
         <ProjectReference Include="..\GGUnmanagedAPI\GGUnmanagedAPI.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Allocation\" />
-    </ItemGroup>
-
 </Project>

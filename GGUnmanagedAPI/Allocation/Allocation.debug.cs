@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using UnmanagedAPI.DebugItems;
 
 namespace UnmanagedAPI
 {
     public static partial class Allocation
     {
-#if ALLOC_DEBUG
         public static class Debug
         {
             public enum Event
@@ -17,89 +17,37 @@ namespace UnmanagedAPI
                 Deallocation,
                 Boundary
             }
-
-            public struct AllocationInfo
+            
+            private static readonly Demarker NEVER = new Demarker
             {
-                public bool Equals(AllocationInfo other)
-                {
-                    return ID == other.ID;
-                }
-
-                public override bool Equals(object? obj)
-                {
-                    return obj is AllocationInfo other && Equals(other);
-                }
-
-                public override int GetHashCode()
-                {
-                    return (int)ID;
-                }
-                
-                // Sort function, should sort by Pointer and ID such that when sorting a list of allocations, the list
-                // will contain AllocationInfo's grouped by pointer in the order of their creation.
-                public static int Sort(AllocationInfo a, AllocationInfo b)
-                {
-                    if (a.Pointer == b.Pointer) return a.ID.CompareTo(b.ID);
-                    return a.Pointer.ToInt64().CompareTo(b.Pointer.ToInt64());
-                }
-
-                public AllocationInfo(Demarker demarker, IntPtr pointer, Event eventType, string callingFunction = "")
-                {
-                    Demarker = demarker;
-                    Pointer = pointer;
-                    Event = eventType;
-                    CallingFunction = callingFunction;
-                    ID = NextID++;
-                }
-
-                public Demarker Demarker;
-                public IntPtr Pointer;
-                public Event Event;
-                public string CallingFunction;
-                public uint ID;
-
-                public static uint NextID = 0;
-
-                // Equality is based on ID;
-                public static bool operator ==(AllocationInfo a, AllocationInfo b)
-                {
-                    return a.ID == b.ID;
-                }
-
-                public static bool operator !=(AllocationInfo a, AllocationInfo b)
-                {
-                    return !(a == b);
-                }
-
-                public override string ToString()
-                {
-                    return $"{Event.ToString()} {Pointer} {Demarker.Name}";
-                }
-            }
-
-            public struct Demarker
-            {
-                public string Name;
-                public int Index;
-
-                public override string ToString()
-                {
-                    return $"{Name}";
-                }
-            }
+                Name = "NEVER",
+                Index = -1
+            };
 
 
             // String name, int index of starting point in AllocationStack
-            public static readonly List<Demarker> DemarkerStack = new List<Demarker>(new[]
-            {
-                new Demarker { Name = "Start", Index = 0 }
-            });
+            public static readonly List<Demarker> DemarkerStack = new List<Demarker>
+            (
+                new[]
+                {
+                    new Demarker
+                    {
+                        Name = "Start",
+                        Index = 0
+                    }
+                }
+            );
 
             public static readonly List<AllocationInfo> AllocationEventStack = new List<AllocationInfo>
             (
                 new[]
                 {
-                    new AllocationInfo(DemarkerStack[0], IntPtr.Zero, Event.Boundary)
+                    new AllocationInfo
+                    (
+                        DemarkerStack[0],
+                        IntPtr.Zero,
+                        Event.Boundary
+                    )
                 }
             );
 
@@ -108,12 +56,20 @@ namespace UnmanagedAPI
             public static readonly Dictionary<IntPtr, int> DeallocationMap = new Dictionary<IntPtr, int>();
 
 
-            public static List<AllocationInfo> GetEventsInBoundary(string name, Event? eventType)
+            public static List<AllocationInfo> GetEventsInBoundary
+            (
+                string name,
+                Event? eventType
+            )
             {
                 return GetEventsInBoundary(GetDemarker(name), eventType);
             }
 
-            public static List<AllocationInfo> GetEventsInBoundary(Demarker demarker, Event? eventType)
+            public static List<AllocationInfo> GetEventsInBoundary
+            (
+                Demarker demarker,
+                Event? eventType
+            )
             {
                 var events = new List<AllocationInfo>();
 
@@ -139,26 +95,25 @@ namespace UnmanagedAPI
                 return events;
             }
 
-            public static readonly Demarker NEVER = new Demarker { Name = "NEVER", Index = -1 };
-
-            public struct AllocationLife
-            {
-                public IntPtr Pointer;
-                public Demarker Start;
-                public Demarker End;
-            }
-
-            public static List<AllocationLife> GetLifeTimes(params long[] targets)
+            public static List<AllocationLife> GetLifeTimes
+            (
+                long[] targets,
+                bool excludeDeallocations = false
+            )
             {
                 // Convert longs to IntPtrs
                 var pointers = targets.Select(l => new IntPtr(l)).ToArray();
-                return GetLifeTimes(pointers);
+                return GetLifeTimes(excludeDeallocations, pointers);
             }
 
             // Get the lifetime of every allocation
             // A lifetime is an AllocationLife object where we record the start and end demarker
             // Each IntPtr can have multiple, non-overlapping lifetimes
-            public static List<AllocationLife> GetLifeTimes(params IntPtr[] targets)
+            public static List<AllocationLife> GetLifeTimes
+            (
+                bool excludeDeallocations = false,
+                params IntPtr[] targets
+            )
             {
                 // There will be a minimum of 1 lifetime per pointer
                 // but the lifetime may never end and will have its End demarker set to NEVER
@@ -166,17 +121,23 @@ namespace UnmanagedAPI
 
                 var pointers = targets.Length == 0 ? AllocationMap.Keys.ToList() : targets.ToList();
                 // Sort by pointer
-                pointers.Sort((a, b) => a.ToInt64().CompareTo(b.ToInt64()));
+                pointers.Sort
+                (
+                    (
+                        a,
+                        b
+                    ) => a.ToInt64().CompareTo(b.ToInt64())
+                );
 
                 // Copy AllocationEventStack
-                var sortedEvents = AllocationEventStack.ToList();
+                var sorted_events = AllocationEventStack.ToList();
                 // Remove all events that are not in the target list -- this will also remove the boundary events
-                sortedEvents.RemoveAll(e => !pointers.Contains(e.Pointer));
+                sorted_events.RemoveAll(e => !pointers.Contains(e.Pointer));
                 // Sort by pointer and ID
-                sortedEvents.Sort(AllocationInfo.Sort);
-                
+                sorted_events.Sort(AllocationInfo.Sort);
+
                 // No matching events
-                if (sortedEvents.Count == 0) return lifetimes;
+                if (sorted_events.Count == 0) return lifetimes;
 
                 // Iterate through all events in 2's
                 // The first event will always be an allocation
@@ -186,15 +147,16 @@ namespace UnmanagedAPI
                 var event_ix = 1;
 
                 // Only one event in the list
-                if (event_ix >= sortedEvents.Count)
+                if (event_ix >= sorted_events.Count)
                 {
                     lifetimes.Add
                     (
                         new AllocationLife
                         {
-                            Pointer = sortedEvents[start_ix].Pointer,
-                            Start = sortedEvents[start_ix].Demarker,
-                            End = NEVER
+                            Pointer = sorted_events[start_ix].Pointer,
+                            Start = sorted_events[start_ix].Demarker,
+                            End = NEVER,
+                            AllocatingTrace = sorted_events[start_ix].CallingTrace
                         }
                     );
                     return lifetimes;
@@ -202,13 +164,16 @@ namespace UnmanagedAPI
 
                 AllocationInfo start_event;
                 AllocationInfo next_event;
-                while (event_ix < sortedEvents.Count)
+                while (event_ix < sorted_events.Count)
                 {
-                    start_event = sortedEvents[start_ix];
-                    next_event = sortedEvents[event_ix];
+                    start_event = sorted_events[start_ix];
+                    next_event = sorted_events[event_ix];
 
                     if (start_event.Pointer == next_event.Pointer)
                     {
+                        start_ix += 2;
+                        event_ix += 2;
+                        if (excludeDeallocations) continue;
                         // If the next event is a deallocation, we have reached the end of the current lifetime
                         // Add the current lifetime to the list
                         lifetimes.Add
@@ -217,11 +182,12 @@ namespace UnmanagedAPI
                             {
                                 Pointer = start_event.Pointer,
                                 Start = start_event.Demarker,
-                                End = next_event.Demarker
+                                End = next_event.Demarker,
+                                AllocatingTrace = start_event.CallingTrace,
+                                DeallocatingTrace = next_event.CallingTrace
                             }
                         );
-                        start_ix += 2;
-                        event_ix += 2;
+
                     }
 
                     // Current event is not matched to the current pointer
@@ -235,17 +201,18 @@ namespace UnmanagedAPI
                             {
                                 Pointer = start_event.Pointer,
                                 Start = start_event.Demarker,
-                                End = NEVER
+                                End = NEVER,
+                                AllocatingTrace = start_event.CallingTrace,
                             }
                         );
                         start_ix++;
                         event_ix++;
                     }
                 }
-                
-                if (start_ix < sortedEvents.Count)
+
+                if (start_ix < sorted_events.Count)
                 {
-                    start_event = sortedEvents[start_ix];
+                    start_event = sorted_events[start_ix];
                     lifetimes.Add
                     (
                         new AllocationLife
@@ -256,31 +223,60 @@ namespace UnmanagedAPI
                         }
                     );
                 }
-                
+
+                // Sort lifetime list by pointer
+                lifetimes.Sort
+                (
+                    (
+                        a,
+                        b
+                    ) => a.Pointer.ToInt64().CompareTo(b.Pointer.ToInt64())
+                );
                 return lifetimes;
             }
 
-            public static List<AllocationInfo> GetEventsForPointer(IntPtr pointer)
+            public static List<AllocationInfo> GetEventsForPointer
+            (
+                IntPtr pointer
+            )
             {
                 return AllocationEventStack.FindAll((info => info.Pointer == pointer));
             }
 
-            public static Demarker GetDemarker(string name)
+            public static Demarker GetDemarker
+            (
+                string name
+            )
             {
                 return DemarkerStack.Find(demarker => demarker.Name == name);
             }
 
-            public static void RegisterBoundary(string name)
+            public static void RegisterBoundary
+            (
+                string name
+            )
             {
-                var demarker = new Demarker { Name = name, Index = AllocationEventStack.Count };
+                var demarker = new Demarker
+                {
+                    Name = name,
+                    Index = AllocationEventStack.Count
+                };
                 AllocationEventStack.Add
                 (
-                    CreateInfo(IntPtr.Zero, Event.Boundary, demarker)
+                    CreateInfo
+                    (
+                        IntPtr.Zero,
+                        Event.Boundary,
+                        demarker
+                    )
                 );
                 DemarkerStack.Add(demarker);
             }
 
-            public static void RegisterAllocation(IntPtr pointer)
+            public static void RegisterAllocation
+            (
+                IntPtr pointer
+            )
             {
                 // Register pointer in map of all allocated pointers
                 AllocatedPointers.Add(pointer);
@@ -299,7 +295,10 @@ namespace UnmanagedAPI
                 AllocationMap[pointer]++;
             }
 
-            public static void RegisterDeallocation(IntPtr pointer)
+            public static void RegisterDeallocation
+            (
+                IntPtr pointer
+            )
             {
                 // Deregister pointer in map of all allocated pointers
                 AllocatedPointers.Remove(pointer);
@@ -327,13 +326,20 @@ namespace UnmanagedAPI
                 }
             }
 
-            private static AllocationInfo CreateInfo(IntPtr pointer, Event eventType, Demarker? demarker = null)
+            private static AllocationInfo CreateInfo
+            (
+                IntPtr pointer,
+                Event eventType,
+                Demarker? demarker = null
+            )
             {
-                // Construct a string of the form "DeclaringType -> Method Name"
-                var calling_function = new StackTrace().GetFrame(5).GetMethod();
-                var calling_function_name = $"{calling_function.DeclaringType} -> {calling_function.Name}";
-                return new AllocationInfo(demarker ?? GetMostRecentDemarker(), pointer, eventType,
-                    calling_function_name);
+                return new AllocationInfo
+                (
+                    demarker ?? GetMostRecentDemarker(),
+                    pointer,
+                    eventType,
+                    new StackTrace()
+                );
             }
 
             private static Demarker GetMostRecentDemarker()
@@ -354,7 +360,13 @@ namespace UnmanagedAPI
 
                 return result;
             }
+
+            public static List<AllocationLife> GetNotDeallocatedLifeTimes()
+            {
+                var not_deallocated = GetNotDeallocated();
+                var to_pointers = not_deallocated.Select(elem => elem.Item1).ToList();
+                return GetLifeTimes(true, to_pointers.ToArray());
+            }
         }
-#endif
     }
 }
