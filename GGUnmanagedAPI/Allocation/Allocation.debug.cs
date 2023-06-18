@@ -17,7 +17,7 @@ namespace UnmanagedAPI
                 Deallocation,
                 Boundary
             }
-            
+
             private static readonly Demarker NEVER = new Demarker
             {
                 Name = "NEVER",
@@ -51,9 +51,9 @@ namespace UnmanagedAPI
                 }
             );
 
-            public static readonly HashSet<IntPtr> AllocatedPointers = new HashSet<IntPtr>();
-            public static readonly Dictionary<IntPtr, int> AllocationMap = new Dictionary<IntPtr, int>();
-            public static readonly Dictionary<IntPtr, int> DeallocationMap = new Dictionary<IntPtr, int>();
+            public static readonly HashSet<long> AllocatedPointers = new HashSet<long>();
+            public static readonly Dictionary<long, int> AllocationMap = new Dictionary<long, int>();
+            public static readonly Dictionary<long, int> DeallocationMap = new Dictionary<long, int>();
 
 
             public static List<AllocationInfo> GetEventsInBoundary
@@ -95,24 +95,13 @@ namespace UnmanagedAPI
                 return events;
             }
 
-            public static List<AllocationLife> GetLifeTimes
-            (
-                long[] targets,
-                bool excludeDeallocations = false
-            )
-            {
-                // Convert longs to IntPtrs
-                var pointers = targets.Select(l => new IntPtr(l)).ToArray();
-                return GetLifeTimes(excludeDeallocations, pointers);
-            }
-
             // Get the lifetime of every allocation
             // A lifetime is an AllocationLife object where we record the start and end demarker
             // Each IntPtr can have multiple, non-overlapping lifetimes
             public static List<AllocationLife> GetLifeTimes
             (
                 bool excludeDeallocations = false,
-                params IntPtr[] targets
+                params long[] targets
             )
             {
                 // There will be a minimum of 1 lifetime per pointer
@@ -126,13 +115,15 @@ namespace UnmanagedAPI
                     (
                         a,
                         b
-                    ) => a.ToInt64().CompareTo(b.ToInt64())
+                    ) => a.CompareTo(b)
                 );
+                // Remove IntPtr.Zero
+                pointers.RemoveAll(p => p == 0);
 
                 // Copy AllocationEventStack
                 var sorted_events = AllocationEventStack.ToList();
                 // Remove all events that are not in the target list -- this will also remove the boundary events
-                sorted_events.RemoveAll(e => !pointers.Contains(e.Pointer));
+                sorted_events.RemoveAll(e => !pointers.Contains((long) e.Pointer));
                 // Sort by pointer and ID
                 sorted_events.Sort(AllocationInfo.Sort);
 
@@ -279,7 +270,7 @@ namespace UnmanagedAPI
             )
             {
                 // Register pointer in map of all allocated pointers
-                AllocatedPointers.Add(pointer);
+                AllocatedPointers.Add((long) pointer);
                 // Register the allocation event
                 AllocationEventStack.Add
                 (
@@ -287,12 +278,12 @@ namespace UnmanagedAPI
                 );
 
                 // Ensure deallocation map has the pointer.
-                DeallocationMap.TryAdd(pointer, 0);
-                if (AllocationMap.TryAdd(pointer, 1)) return;
+                DeallocationMap.TryAdd((long) pointer, 0);
+                if (AllocationMap.TryAdd((long) pointer, 1)) return;
 
                 // The allocation map already has the pointer from a previous use of the address.
                 // Increment the allocation count.
-                AllocationMap[pointer]++;
+                AllocationMap[(long) pointer]++;
             }
 
             public static void RegisterDeallocation
@@ -301,7 +292,7 @@ namespace UnmanagedAPI
             )
             {
                 // Deregister pointer in map of all allocated pointers
-                AllocatedPointers.Remove(pointer);
+                AllocatedPointers.Remove((long) pointer);
                 // Register the deallocation event
                 AllocationEventStack.Add
                 (
@@ -313,7 +304,7 @@ namespace UnmanagedAPI
                 // deallocation will increment the reference count to 1.
                 try
                 {
-                    DeallocationMap[pointer]++;
+                    DeallocationMap[(long) pointer]++;
                 }
                 catch (Exception e)
                 {
@@ -333,6 +324,13 @@ namespace UnmanagedAPI
                 Demarker? demarker = null
             )
             {
+                // TODO: begin Remove this -- Debug workaround
+                var name = (demarker ?? new Demarker()).Name;
+                if (name == "DisposeInitialActionSetters")
+                {
+                    var a = name;
+                }
+                // TODO: end
                 return new AllocationInfo
                 (
                     demarker ?? GetMostRecentDemarker(),
@@ -348,9 +346,9 @@ namespace UnmanagedAPI
             }
 
             // List of tuples of (IntPtr, AllocationCount, DeallocationCount)
-            public static List<(IntPtr, int, int)> GetNotDeallocated()
+            public static List<(long, int, int)> GetNotDeallocated()
             {
-                var result = new List<(IntPtr, int, int)>();
+                var result = new List<(long, int, int)>();
                 foreach (var elem in AllocationMap)
                 {
                     var matched = DeallocationMap[elem.Key];
