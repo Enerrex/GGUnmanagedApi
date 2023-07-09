@@ -36,13 +36,23 @@
             return allocated;
         }
 
+        /// <summary>
+        /// Initialize a new reference with the values of another reference.
+        /// </summary>
+        /// <param name="reference"></param>
+        /// <param name="allocationLength"></param>
+        /// <typeparam name="TUnmanaged"></typeparam>
         public static void Initialize<TUnmanaged>
         (
             Reference<TUnmanaged> reference,
-            int allocationLength
+            int allocationLength=0
         ) where TUnmanaged : unmanaged
         {
-            for (var i = 0; i < allocationLength; i++) *(reference.ToPointer() + i) = new TUnmanaged();
+            var allocated = Create<TUnmanaged>(allocationLength);
+            for (var ix = 0; ix < allocationLength; ix++)
+            {
+                *(allocated.ToPointer() + ix) = *reference.ToPointer(ix);
+            }
         }
     }
 }
