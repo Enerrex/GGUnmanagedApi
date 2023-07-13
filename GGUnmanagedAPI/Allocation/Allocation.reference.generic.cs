@@ -39,6 +39,11 @@ namespace UnmanagedAPI
             {
                 return Pointer + index;
             }
+            
+            public void ThrowIfNull()
+            {
+                if (IsNull) throw new NullReferenceException();
+            }
 
             #region OPERATORS
 

@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using UnmanagedAPI;
 using UnmanagedAPI.Containers;
 using UnmanagedCore.Debug.Proxies;
 
 namespace UnmanagedCore.Containers
 {
-    /// <summary>
-    ///     WARN: This struct has a functionality to expand infinitely as long as elements are added.
-    ///     Every time length is reached, the array is reallocated at ~twice the previous size.
-    /// </summary>
-    /// <typeparam name="TUnmanaged"></typeparam>
     [DebuggerTypeProxy(typeof(PointerArrayProxy<>))]
-
     public unsafe struct PointerArray<TUnmanaged> : IPointerStorage<TUnmanaged>, IDisposable where TUnmanaged : unmanaged
     {
         private Allocation.Owner<TUnmanaged> _owner;
@@ -56,6 +51,7 @@ namespace UnmanagedCore.Containers
             );
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly bool CheckIndexOutOfRange
         (
             int index
@@ -69,7 +65,7 @@ namespace UnmanagedCore.Containers
             int index
         ]
         {
-            get
+            readonly get
             {
                 if (CheckIndexOutOfRange(index)) throw new IndexOutOfRangeException();
                 return *(Owner.Pointer + index);
@@ -81,16 +77,16 @@ namespace UnmanagedCore.Containers
             }
         }
         
-        public Allocation.Slice<TUnmanaged> GetSlice
+        public readonly Allocation.Slice<TUnmanaged> GetSlice
         (
             int startIndex = 0,
             int? length = null
         )
         {
-            int length_value = length ?? Length - startIndex;
             // List isn't allocated, return Slice for Null
             if (_owner.IsNull) return Allocation.Slice<TUnmanaged>.Null;
-            
+            int length_value = length ?? Length - startIndex;
+
             // Check if the slice is out of range
             if (CheckIndexOutOfRange(startIndex)) throw new IndexOutOfRangeException();
             if (CheckIndexOutOfRange(startIndex + length_value - 1)) throw new IndexOutOfRangeException();
