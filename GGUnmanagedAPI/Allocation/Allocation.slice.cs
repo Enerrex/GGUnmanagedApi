@@ -30,6 +30,11 @@ namespace UnmanagedAPI
                 _reference = new Reference<TUnmanaged>(~reference + startIndex);
                 Length = length;
             }
+            
+            public SliceRO<TUnmanaged> GetReadOnly()
+            {
+                return new SliceRO<TUnmanaged>(_reference, Length);
+            }
 
             // Indexer with bounds checking.
             public unsafe TUnmanaged this

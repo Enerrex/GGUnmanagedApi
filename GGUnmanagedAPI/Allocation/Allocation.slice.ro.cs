@@ -32,6 +32,11 @@ namespace UnmanagedAPI
                 Length = length;
             }
 
+            public Slice<TUnmanaged> GetReadWrite()
+            {
+                return new Slice<TUnmanaged>(_reference, Length);
+            }
+
             // Indexer with bounds checking.
             public unsafe TUnmanaged this
             [
