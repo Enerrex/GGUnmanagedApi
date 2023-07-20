@@ -39,5 +39,16 @@
             *owner.As<TUnmanaged>() = value;
             return owner;
         }
+        
+        public static Owner CreateVoid
+        (
+            int length
+        )
+        {
+            return Malloc<byte>
+            (
+                length
+            );
+        }
     }
 }

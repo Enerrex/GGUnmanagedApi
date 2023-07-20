@@ -170,6 +170,27 @@ namespace UnmanagedCore.Containers
             Count += values.Count;
         }
 
+        // This does not guarantee that the memory is zeroed out
+        // Accessing the memory after this operation may yield the old element
+        public void RemoveAt(int index)
+        {
+            if (CheckIndexOutOfRange(index)) throw new IndexOutOfRangeException();
+            if (index == Count - 1)
+            {
+                Count--;
+                return;
+            }
+            // Copy the elements after the index to the index
+            Allocation.CopyTo<TUnmanaged>
+            (
+                _owner.ToPointer(index + 1),
+                Count - 1,
+                _owner.ToPointer(index),
+                Count - 1
+            );
+            Count--;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ExpandCapacity
         (
