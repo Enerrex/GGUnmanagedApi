@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnmanagedAPI;
 using UnmanagedAPI.Containers;
 using UnmanagedCore.Containers.Iterators.Extensions;
@@ -13,12 +14,12 @@ namespace UnmanagedCore.Containers.Hashing
     {
         private TUnmanagedKeyHandler _keyHandler;
         public int Count { get; private set; }
-        private HashSet<TUnmanagedKey, TUnmanagedKeyHandler> _bucketsKeys;
+        private PointerList<PointerList<TUnmanagedKey>> _bucketsKeys;
         private PointerList<PointerList<TUnmanagedValue>> _bucketsValues;
 
         public HashMap(int capacity)
         {
-            _bucketsKeys = new HashSet<TUnmanagedKey, TUnmanagedKeyHandler>(capacity);
+            _bucketsKeys = new PointerList<PointerList<TUnmanagedKey>>(capacity);
             _bucketsValues = new PointerList<PointerList<TUnmanagedValue>>(capacity);
             for (int bucket_ix = 0; bucket_ix < capacity; bucket_ix++)
             {
@@ -48,10 +49,20 @@ namespace UnmanagedCore.Containers.Hashing
             }
         }
         
+                
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal int GetBucketIndex(TUnmanagedKey item)
+        {
+            int hash = _keyHandler.GetHash(item);
+            int bucket_ix = hash % _bucketsKeys.Count;
+            return bucket_ix;
+        }
+        
         public void Add(TUnmanagedKey item, TUnmanagedValue value)
         {
-            _bucketsKeys.Add(item);
-            int value_bucket = _bucketsKeys.GetBucketIndex(item);
+            var bucket_ix = GetBucketIndex(item);
+            var key_bucket = _bucketsKeys[bucket_ix];
+
             for (int item_ix = 0; item_ix < key_bucket.Count; item_ix++)
             {
                 if (key_bucket[item_ix].Equals(item))
@@ -60,6 +71,7 @@ namespace UnmanagedCore.Containers.Hashing
                 }
             }
 
+            var value_bucket = _bucketsValues[bucket_ix];
             key_bucket.Add(item);
             value_bucket.Add(value);
             Count++;
@@ -144,7 +156,7 @@ namespace UnmanagedCore.Containers.Hashing
             return false;
         }
 
-        public void Resize(int size)
+        public void ResizeBuckets(int size)
         {
             var new_keys = new PointerList<PointerList<TUnmanagedKey>>(size);
             var new_values = new PointerList<PointerList<TUnmanagedValue>>(size);

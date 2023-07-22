@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnmanagedAPI.Containers;
 
 namespace UnmanagedCore.Containers.Hashing
@@ -9,18 +11,20 @@ namespace UnmanagedCore.Containers.Hashing
     {
         private TUnmanagedKeyHandler _keyHandler;
 
-        private PointerList<PointerList<TUnmanagedKey>> _buckets;
+        private PointerList<TUnmanagedKey> _storage;
 
         public int Count { get; private set; }
 
-        public HashSet(int bucketCount)
+        public HashSet(int capacity)
         {
+            var a = true;
+            var b = a!;
             _keyHandler = new TUnmanagedKeyHandler();
 
-            _buckets = new PointerList<PointerList<TUnmanagedKey>>(bucketCount);
-            for (int bucket_ix = 0; bucket_ix < bucketCount; bucket_ix++)
+            _storage = new PointerList<TUnmanagedKey>(capacity);
+            for (int bucket_ix = 0; bucket_ix < capacity; bucket_ix++)
             {
-                _buckets[bucket_ix] = new PointerList<TUnmanagedKey>(1);
+                _storage[bucket_ix] = new PointerList<TUnmanagedKey>(1);
             }
 
             Count = 0;
@@ -29,7 +33,7 @@ namespace UnmanagedCore.Containers.Hashing
         public void Add(TUnmanagedKey item)
         {
             int bucket_ix = GetBucketIndex(item);
-            var bucket = _buckets[bucket_ix];
+            var bucket = _storage[bucket_ix];
             for (int item_ix = 0; item_ix < bucket.Count; item_ix++)
             {
                 if (bucket[item_ix].Equals(item))
@@ -42,32 +46,18 @@ namespace UnmanagedCore.Containers.Hashing
             Count++;
         }
         
-        internal int GetBucketIndex(TUnmanagedKey item)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal uint GetBucketIndex(TUnmanagedKey key)
         {
-            int hash = _keyHandler.GetHash(item);
-            int bucket_ix = hash % _buckets.Count;
-            return bucket_ix;
+            uint hash = (uint)key.GetHashCode();
+            return hash == uint.MaxValue ? 0 : hash;
         }
         
-        internal int GetIndexInBucket(TUnmanagedKey item)
-        {
-            var bucket = _buckets[GetBucketIndex(item)];
-            for (int item_ix = 0; item_ix < bucket.Count; item_ix++)
-            {
-                if (bucket[item_ix].Equals(item))
-                {
-                    return item_ix;
-                }
-            }
-
-            return -1;
-        }
-
         public bool Remove(TUnmanagedKey item)
         {
             int hash = _keyHandler.GetHash(item);
-            int bucket_ix = hash % _buckets.Count;
-            var bucket = _buckets[bucket_ix];
+            int bucket_ix = hash % _storage.Count;
+            var bucket = _storage[bucket_ix];
             for (int item_ix = 0; item_ix < bucket.Count; item_ix++)
             {
                 if (bucket[item_ix].Equals(item))
@@ -84,8 +74,8 @@ namespace UnmanagedCore.Containers.Hashing
         public bool Contains(TUnmanagedKey item)
         {
             int hash = _keyHandler.GetHash(item);
-            int bucket_ix = hash % _buckets.Count;
-            var bucket = _buckets[bucket_ix];
+            int bucket_ix = hash % _storage.Count;
+            var bucket = _storage[bucket_ix];
             for (int item_ix = 0; item_ix < bucket.Count; item_ix++)
             {
                 if (bucket[item_ix].Equals(item))
@@ -99,10 +89,10 @@ namespace UnmanagedCore.Containers.Hashing
         
         public void Clear()
         {
-            for (int bucket_ix = 0; bucket_ix < _buckets.Count; bucket_ix++)
+            for (int bucket_ix = 0; bucket_ix < _storage.Count; bucket_ix++)
             {
-                _buckets[bucket_ix].Dispose();
-                _buckets[bucket_ix] = new PointerList<TUnmanagedKey>(1);
+                _storage[bucket_ix].Dispose();
+                _storage[bucket_ix] = new PointerList<TUnmanagedKey>(1);
             }
             
             Count = 0;
@@ -110,12 +100,12 @@ namespace UnmanagedCore.Containers.Hashing
         
         public void Dispose()
         {
-            for (int bucket_ix = 0; bucket_ix < _buckets.Count; bucket_ix++)
+            for (int bucket_ix = 0; bucket_ix < _storage.Count; bucket_ix++)
             {
-                _buckets[bucket_ix].Dispose();
+                _storage[bucket_ix].Dispose();
             }
             
-            _buckets.Dispose();
+            _storage.Dispose();
         }
     }
 }
