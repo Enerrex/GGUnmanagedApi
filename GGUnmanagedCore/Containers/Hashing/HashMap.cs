@@ -53,7 +53,7 @@ namespace UnmanagedCore.Containers.Hashing
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal int GetBucketIndex(TUnmanagedKey item)
         {
-            int hash = _keyHandler.GetHash(item);
+            int hash = _keyHandler.GetHashCode(item);
             int bucket_ix = hash % _bucketsKeys.Count;
             return bucket_ix;
         }
@@ -79,7 +79,7 @@ namespace UnmanagedCore.Containers.Hashing
         
         private void Set(TUnmanagedKey item, TUnmanagedValue value)
         {
-            int hash = _keyHandler.GetHash(item);
+            int hash = _keyHandler.GetHashCode(item);
             int bucket_ix = hash % _bucketsKeys.Count;
 
             var key_bucket = _bucketsKeys[bucket_ix];
@@ -98,7 +98,7 @@ namespace UnmanagedCore.Containers.Hashing
         
         public bool TryAdd(TUnmanagedKey item, TUnmanagedValue value)
         {
-            int hash = _keyHandler.GetHash(item);
+            int hash = _keyHandler.GetHashCode(item);
             int bucket_ix = hash % _bucketsKeys.Count;
 
             var key_bucket = _bucketsKeys[bucket_ix];
@@ -119,7 +119,7 @@ namespace UnmanagedCore.Containers.Hashing
         
         public bool Remove(TUnmanagedKey item)
         {
-            int hash = _keyHandler.GetHash(item);
+            int hash = _keyHandler.GetHashCode(item);
             int bucket_ix = hash % _bucketsKeys.Count;
             var key_bucket = _bucketsKeys[bucket_ix];
             var value_bucket = _bucketsValues[bucket_ix];
@@ -140,7 +140,7 @@ namespace UnmanagedCore.Containers.Hashing
         public bool TryGetValue(TUnmanagedKey item, out TUnmanagedValue result)
         {
             result = default;
-            int hash = _keyHandler.GetHash(item);
+            int hash = _keyHandler.GetHashCode(item);
             int bucket_ix = hash % _bucketsKeys.Count;
             var key_bucket = _bucketsKeys[bucket_ix];
             var value_bucket = _bucketsValues[bucket_ix];
@@ -185,7 +185,7 @@ namespace UnmanagedCore.Containers.Hashing
         
         public bool ContainsKey(TUnmanagedKey item)
         {
-            int hash = _keyHandler.GetHash(item);
+            int hash = _keyHandler.GetHashCode(item);
             int bucket_ix = hash % _bucketsKeys.Count;
             var key_bucket = _bucketsKeys[bucket_ix];
             for (int item_ix = 0; item_ix < key_bucket.Count; item_ix++)

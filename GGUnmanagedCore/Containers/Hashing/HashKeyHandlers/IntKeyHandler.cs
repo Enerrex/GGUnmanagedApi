@@ -4,7 +4,7 @@ namespace UnmanagedCore.Containers.Hashing.HashKeyHandlers
 {
     public struct IntKeyHandler : IHashProvider<int>
     {
-        public int GetHash(in int item)
+        public int GetHashCode(in int item)
         {
             return item.GetHashCode();
         }

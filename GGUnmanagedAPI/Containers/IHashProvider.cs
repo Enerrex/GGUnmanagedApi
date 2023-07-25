@@ -1,7 +1,9 @@
-﻿namespace UnmanagedAPI.Containers
+﻿using System;
+
+namespace UnmanagedAPI.Containers
 {
-    public interface IHashProvider<TUnmanaged> where TUnmanaged : unmanaged
+    public interface IHashProvider<TUnmanaged> : IEquatable<TUnmanaged> where TUnmanaged : unmanaged
     {
-        public int GetHash(in TUnmanaged item);
+        public int GetHashCode(in TUnmanaged item);
     }
 }

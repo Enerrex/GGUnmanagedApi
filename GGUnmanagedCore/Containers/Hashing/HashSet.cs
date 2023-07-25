@@ -1,111 +1,128 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using UnmanagedAPI;
 using UnmanagedAPI.Containers;
 
 namespace UnmanagedCore.Containers.Hashing
 {
+    // HashSet uses Hopscotch hashing
     public struct HashSet<TUnmanagedKey, TUnmanagedKeyHandler>
         where TUnmanagedKey : unmanaged, IEquatable<TUnmanagedKey>
         where TUnmanagedKeyHandler : unmanaged, IHashProvider<TUnmanagedKey>
     {
         private TUnmanagedKeyHandler _keyHandler;
-
-        private PointerList<TUnmanagedKey> _storage;
+        internal float LoadFactor => Count / (float)Capacity;
+        
+        private Allocation.Owner<HomeBucket> _storage;
 
         public int Count { get; private set; }
+        public int Capacity { get; private set; }
+        
+        internal static readonly int NeighborHoodSize = 32;
 
         public HashSet(int capacity)
         {
-            var a = true;
-            var b = a!;
-            _keyHandler = new TUnmanagedKeyHandler();
-
-            _storage = new PointerList<TUnmanagedKey>(capacity);
-            for (int bucket_ix = 0; bucket_ix < capacity; bucket_ix++)
-            {
-                _storage[bucket_ix] = new PointerList<TUnmanagedKey>(1);
-            }
-
+            // TODO: Calc capacity from input
+            _storage = Allocation.Initialize
+            (
+                HomeBucket.Default,
+                capacity
+            );
+            Capacity = capacity;
             Count = 0;
-        }
-
-        public void Add(TUnmanagedKey item)
-        {
-            int bucket_ix = GetBucketIndex(item);
-            var bucket = _storage[bucket_ix];
-            for (int item_ix = 0; item_ix < bucket.Count; item_ix++)
-            {
-                if (bucket[item_ix].Equals(item))
-                {
-                    return;
-                }
-            }
-
-            bucket.Add(item);
-            Count++;
+            _keyHandler = new TUnmanagedKeyHandler();
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal uint GetBucketIndex(TUnmanagedKey key)
+        internal int GetBucketIndex(TUnmanagedKey key)
         {
-            uint hash = (uint)key.GetHashCode();
-            return hash == uint.MaxValue ? 0 : hash;
+            int hash = _keyHandler.GetHashCode(key);
+            return hash == int.MaxValue ? 0 : hash;
         }
         
-        public bool Remove(TUnmanagedKey item)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal unsafe HomeBucket* GetHomeBucketPointer(TUnmanagedKey key)
         {
-            int hash = _keyHandler.GetHash(item);
-            int bucket_ix = hash % _storage.Count;
-            var bucket = _storage[bucket_ix];
-            for (int item_ix = 0; item_ix < bucket.Count; item_ix++)
+            var index = GetBucketIndex(key);
+            return GetIndexPointer(index);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal unsafe HomeBucket* GetIndexPointer(int index)
+        {
+            return _storage.ToPointer(index);
+        }
+
+        private unsafe void Insert(TUnmanagedKey key)
+        {
+            int bucket_ix = GetBucketIndex(key);
+            var home_bucket = GetIndexPointer(bucket_ix);
+            if (!home_bucket->IsOccupied)
             {
-                if (bucket[item_ix].Equals(item))
-                {
-                    bucket.RemoveAt(item_ix);
-                    Count--;
-                    return true;
-                }
+                home_bucket->Key = key;
+                home_bucket->SetOccupied();
+                return;
             }
 
-            return false;
-        }
-        
-        public bool Contains(TUnmanagedKey item)
-        {
-            int hash = _keyHandler.GetHash(item);
-            int bucket_ix = hash % _storage.Count;
-            var bucket = _storage[bucket_ix];
-            for (int item_ix = 0; item_ix < bucket.Count; item_ix++)
+            int neighborhood = home_bucket->NeighborHood;
+            for (int bit_ix = 0; bit_ix < NeighborHoodSize; bit_ix++)
             {
-                if (bucket[item_ix].Equals(item))
+                if (!home_bucket->GetBit(bit_ix))
                 {
-                    return true;
+                    home_bucket->SetBit(bit_ix);
+                    var bucket = GetIndexPointer(bucket_ix + bit_ix + 1);
+                    bucket->Key = key;
+                    bucket->NeighborHood = 0;
+                    return;
                 }
             }
+        }
 
-            return false;
-        }
-        
-        public void Clear()
-        {
-            for (int bucket_ix = 0; bucket_ix < _storage.Count; bucket_ix++)
-            {
-                _storage[bucket_ix].Dispose();
-                _storage[bucket_ix] = new PointerList<TUnmanagedKey>(1);
-            }
-            
-            Count = 0;
-        }
-        
         public void Dispose()
         {
-            for (int bucket_ix = 0; bucket_ix < _storage.Count; bucket_ix++)
+            for (int bucket_ix = 0; bucket_ix < Capacity; bucket_ix++)
             {
                 _storage[bucket_ix].Dispose();
             }
             
             _storage.Dispose();
+        }
+        
+        internal struct Entry
+        {
+            public TUnmanagedKey Key;
+            public int Hash;
+        }
+        
+        internal struct HomeBucket
+        {
+            public bool IsOccupied => (NeighborHood & (1 << 0)) != 0;
+            public TUnmanagedKey Key;
+            public int NeighborHood;
+            
+            public void SetBit(int bit_index)
+            {
+                NeighborHood |= 1 << bit_index;
+            }
+            
+            public bool GetBit(int bit_index)
+            {
+                return (NeighborHood & (1 << bit_index)) != 0;
+            }
+            
+            public static readonly HomeBucket Default = new HomeBucket
+            {
+                Key = default,
+                // Default neighborhood is 0
+                NeighborHood = 0
+            };
+            
+            // Use the sign bit to indicate if the bucket is occupied
+            public void SetOccupied()
+            {
+                NeighborHood |= 1 << 0;
+            }
         }
     }
 }
