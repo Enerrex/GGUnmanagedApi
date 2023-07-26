@@ -20,6 +20,7 @@ namespace UnmanagedCore.Containers.Hashing
         public int Capacity { get; private set; }
         
         internal static readonly int NeighborHoodSize = 32;
+        internal static readonly int LookAheadLimit = 256;
 
         public HashSet(int capacity)
         {
@@ -38,7 +39,7 @@ namespace UnmanagedCore.Containers.Hashing
         internal int GetBucketIndex(TUnmanagedKey key)
         {
             int hash = _keyHandler.GetHashCode(key);
-            return hash == int.MaxValue ? 0 : hash;
+            return WrapIndex(hash == int.MaxValue ? 0 : hash);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -53,6 +54,12 @@ namespace UnmanagedCore.Containers.Hashing
         {
             return _storage.ToPointer(index);
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal int WrapIndex(int index)
+        {
+            return index % Capacity;
+        }
 
         private unsafe void Insert(TUnmanagedKey key)
         {
@@ -64,19 +71,47 @@ namespace UnmanagedCore.Containers.Hashing
                 home_bucket->SetOccupied();
                 return;
             }
-
-            int neighborhood = home_bucket->NeighborHood;
-            for (int bit_ix = 0; bit_ix < NeighborHoodSize; bit_ix++)
+            
+            // Find next open slot
+            var distance = 1;
+            var current_ix = (bucket_ix + distance) % Capacity;
+            var current_bucket = GetIndexPointer(current_ix);
+            
+            while (distance < LookAheadLimit)
             {
-                if (!home_bucket->GetBit(bit_ix))
+                if (!current_bucket->IsOccupied)
                 {
-                    home_bucket->SetBit(bit_ix);
-                    var bucket = GetIndexPointer(bucket_ix + bit_ix + 1);
-                    bucket->Key = key;
-                    bucket->NeighborHood = 0;
-                    return;
+                    break;
                 }
+
+                distance++;
+                current_ix = (bucket_ix + distance) % Capacity;
+                current_bucket = GetIndexPointer(current_ix);
             }
+
+            // Empty slot is IN the neighborhood
+            if (distance < NeighborHoodSize)
+            {
+                home_bucket->SetBit(distance);
+                current_bucket->Key = key;
+                return;
+            }
+            
+            // Otherwise attempt to move the empty slot back to the neighborhood
+            // We do this by displacing elements in other buckets
+        }
+
+        internal bool DisplaceSlotsInNeighborhood
+        (
+            int neighborhoodIx,
+            ref int displacementCount
+        )
+        {
+            for 
+            (
+                var neighbor_ix = WrapIndex(neighborhoodIx + NeighborHoodSize - 1);
+                
+                )
         }
 
         public void Dispose()
@@ -101,14 +136,14 @@ namespace UnmanagedCore.Containers.Hashing
             public TUnmanagedKey Key;
             public int NeighborHood;
             
-            public void SetBit(int bit_index)
+            public void SetBit(int bitIndex)
             {
-                NeighborHood |= 1 << bit_index;
+                NeighborHood |= 1 << bitIndex;
             }
             
-            public bool GetBit(int bit_index)
+            public bool GetBit(int bitIndex)
             {
-                return (NeighborHood & (1 << bit_index)) != 0;
+                return (NeighborHood & (1 << bitIndex)) != 0;
             }
             
             public static readonly HomeBucket Default = new HomeBucket
