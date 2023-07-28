@@ -81,6 +81,7 @@ namespace UnmanagedCore.Containers.Hashing
             TUnmanagedKey key
         )
         {
+            #region TryHomeBucket
             int bucket_ix = GetBucketIndex(key);
             var home_bucket = GetIndexPointer(bucket_ix);
             if (!home_bucket->IsOccupied)
@@ -89,44 +90,49 @@ namespace UnmanagedCore.Containers.Hashing
                 home_bucket->SetOccupied();
                 return;
             }
+            #endregion
 
+            #region FindEmptySlot
             // Find next open slot
-            var distance = 1;
-            var current_ix = (bucket_ix + distance) % Capacity;
+            var distance_to_empty_slot = 1;
+            var current_ix = (bucket_ix + distance_to_empty_slot) % Capacity;
             HomeBucket* current_bucket = GetIndexPointer(current_ix);
 
-            while (distance < LookAheadLimit)
+            while (distance_to_empty_slot < LookAheadLimit)
             {
                 if (!current_bucket->IsOccupied)
                 {
                     break;
                 }
 
-                distance++;
-                current_ix = (bucket_ix + distance) % Capacity;
+                distance_to_empty_slot++;
+                current_ix = (bucket_ix + distance_to_empty_slot) % Capacity;
                 current_bucket = GetIndexPointer(current_ix);
             }
+            #endregion
 
-            if (distance < LookAheadLimit)
+            if (distance_to_empty_slot < LookAheadLimit)
             {
                 // Empty slot is IN the neighborhood
-                if (distance < NeighborHoodSize)
+                if (distance_to_empty_slot < NeighborHoodSize)
                 {
-                    home_bucket->SetBit(distance);
+                    home_bucket->SetBit(distance_to_empty_slot);
                     current_bucket->Key = key;
                     return;
                 }
+                
+                FindCLoserFreeBucket(ref current_bucket, ref distance_to_empty_slot);
             }
 
         }
 
         internal unsafe void FindCLoserFreeBucket
         (
-            ref HomeBucket* bucket,
+            ref HomeBucket* targetBucket,
             ref int distance
         )
         {
-            HomeBucket* target_bucket = bucket - NeighborHoodSize - 1;
+            HomeBucket* target_bucket = targetBucket - NeighborHoodSize - 1;
 
             for
             (
@@ -144,8 +150,19 @@ namespace UnmanagedCore.Containers.Hashing
                         open_bucket_ix = bit_ix;
                         break;
                     }
-
-                    open_bucket_ix--;
+                }
+                
+                if (open_bucket_ix != -1)
+                {
+                    // Move the key to the open targetBucket
+                    var open_bucket = target_bucket + open_bucket_ix;
+                    open_bucket->Key = targetBucket->Key;
+                    open_bucket->SetBit(hop_distance_ix);
+                    targetBucket->Key = default;
+                    targetBucket->SetBit(open_bucket_ix);
+                    targetBucket = open_bucket;
+                    distance -= hop_distance_ix;
+                    return;
                 }
             }
         }
@@ -180,6 +197,14 @@ namespace UnmanagedCore.Containers.Hashing
             {
                 NeighborHood |= 1 << bitIndex;
             }
+            
+            public void ClearBit
+            (
+                int bitIndex
+            )
+            {
+                NeighborHood &= ~(1 << bitIndex);
+            }
 
             public bool GetBit
             (
@@ -195,8 +220,7 @@ namespace UnmanagedCore.Containers.Hashing
                 // Default neighborhood is 0
                 NeighborHood = 0
             };
-
-            // Use the sign bit to indicate if the bucket is occupied
+            
             public void SetOccupied()
             {
                 NeighborHood |= 1 << 0;
