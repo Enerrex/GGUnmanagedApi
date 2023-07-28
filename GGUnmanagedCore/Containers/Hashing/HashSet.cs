@@ -12,7 +12,7 @@ namespace UnmanagedCore.Containers.Hashing
         where TUnmanagedKeyHandler : unmanaged, IHashProvider<TUnmanagedKey>
     {
         private TUnmanagedKeyHandler _keyHandler;
-        internal float LoadFactor => Count / (float)Capacity;
+        internal float LoadFactor => Count / (float) Capacity;
 
         private Allocation.Owner<HomeBucket> _storage;
 
@@ -22,7 +22,10 @@ namespace UnmanagedCore.Containers.Hashing
         internal static readonly int NeighborHoodSize = 32;
         internal static readonly int LookAheadLimit = 256;
 
-        public HashSet(int capacity)
+        public HashSet
+        (
+            int capacity
+        )
         {
             // TODO: Calc capacity from input
             _storage = Allocation.Initialize
@@ -36,32 +39,47 @@ namespace UnmanagedCore.Containers.Hashing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal int GetBucketIndex(TUnmanagedKey key)
+        internal int GetBucketIndex
+        (
+            TUnmanagedKey key
+        )
         {
             int hash = _keyHandler.GetHashCode(key);
             return WrapIndex(hash == int.MaxValue ? 0 : hash);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal unsafe HomeBucket* GetHomeBucketPointer(TUnmanagedKey key)
+        internal unsafe HomeBucket* GetHomeBucketPointer
+        (
+            TUnmanagedKey key
+        )
         {
             var index = GetBucketIndex(key);
             return GetIndexPointer(index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal unsafe HomeBucket* GetIndexPointer(int index)
+        internal unsafe HomeBucket* GetIndexPointer
+        (
+            int index
+        )
         {
             return _storage.ToPointer(index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal int WrapIndex(int index)
+        internal int WrapIndex
+        (
+            int index
+        )
         {
             return index % Capacity;
         }
 
-        private unsafe void Insert(TUnmanagedKey key)
+        private unsafe void Insert
+        (
+            TUnmanagedKey key
+        )
         {
             int bucket_ix = GetBucketIndex(key);
             var home_bucket = GetIndexPointer(bucket_ix);
@@ -101,24 +119,37 @@ namespace UnmanagedCore.Containers.Hashing
             }
 
         }
-        
-        internal unsafe void FindCLoserFreeBucket(HomeBucket* bucket, ref int distance)
+
+        internal unsafe void FindCLoserFreeBucket
+        (
+            ref HomeBucket* bucket,
+            ref int distance
+        )
         {
             HomeBucket* target_bucket = bucket - NeighborHoodSize - 1;
 
-            while (distance < LookAheadLimit)
+            for
+            (
+                var hop_distance_ix = NeighborHoodSize - 1;
+                hop_distance_ix > 0;
+                hop_distance_ix--
+            )
             {
-                if (!current_bucket->IsOccupied)
+                int open_bucket_ix = -1;
+                // Loop through each bit in the neighborhood
+                for (var bit_ix = 0; bit_ix < hop_distance_ix; bit_ix++)
                 {
-                    break;
-                }
+                    if (target_bucket->GetBit(bit_ix))
+                    {
+                        open_bucket_ix = bit_ix;
+                        break;
+                    }
 
-                distance++;
-                current_ix = (bucket->Hash + distance) % Capacity;
-                current_bucket = GetIndexPointer(current_ix);
+                    open_bucket_ix--;
+                }
             }
         }
-        
+
 
         public void Dispose()
         {
@@ -142,12 +173,18 @@ namespace UnmanagedCore.Containers.Hashing
             public TUnmanagedKey Key;
             public int NeighborHood;
 
-            public void SetBit(int bitIndex)
+            public void SetBit
+            (
+                int bitIndex
+            )
             {
                 NeighborHood |= 1 << bitIndex;
             }
 
-            public bool GetBit(int bitIndex)
+            public bool GetBit
+            (
+                int bitIndex
+            )
             {
                 return (NeighborHood & (1 << bitIndex)) != 0;
             }
