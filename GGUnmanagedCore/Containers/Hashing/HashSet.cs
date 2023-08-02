@@ -121,12 +121,19 @@ namespace UnmanagedCore.Containers.Hashing
                     return;
                 }
                 
-                FindCLoserFreeBucket(ref current_bucket, ref distance_to_empty_slot);
+                MoveBucketAway(ref current_bucket, ref distance_to_empty_slot);
             }
 
         }
 
-        internal unsafe void FindCLoserFreeBucket
+        /// <summary>
+        /// Attempts to move a bucket away from its home bucket (while still being in the neighborhood)
+        /// This will be called multiple times by Insert until we reach a limit
+        /// or the new key is added into its neighborhood
+        /// </summary>
+        /// <param name="targetBucket"></param>
+        /// <param name="distance"></param>
+        internal unsafe void MoveBucketAway
         (
             ref HomeBucket* targetBucket,
             ref int distance
@@ -134,6 +141,7 @@ namespace UnmanagedCore.Containers.Hashing
         {
             HomeBucket* target_bucket = targetBucket - NeighborHoodSize - 1;
 
+            // Loop through each bit in the neighborhood
             for
             (
                 var hop_distance_ix = NeighborHoodSize - 1;
@@ -141,8 +149,9 @@ namespace UnmanagedCore.Containers.Hashing
                 hop_distance_ix--
             )
             {
+                // Try to find an open bucket in the neighborhood
                 int open_bucket_ix = -1;
-                // Loop through each bit in the neighborhood
+                // Loop through each bit up to the current hop distance
                 for (var bit_ix = 0; bit_ix < hop_distance_ix; bit_ix++)
                 {
                     if (target_bucket->GetBit(bit_ix))
@@ -152,6 +161,7 @@ namespace UnmanagedCore.Containers.Hashing
                     }
                 }
                 
+                // There is an open bucket
                 if (open_bucket_ix != -1)
                 {
                     // Move the key to the open targetBucket
@@ -164,7 +174,11 @@ namespace UnmanagedCore.Containers.Hashing
                     distance -= hop_distance_ix;
                     return;
                 }
+
+                target_bucket++;
             }
+            targetBucket = null;
+            distance = 0;
         }
 
 
