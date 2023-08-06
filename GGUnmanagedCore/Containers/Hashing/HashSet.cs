@@ -95,10 +95,12 @@ namespace UnmanagedCore.Containers.Hashing
             #region FindEmptySlot
             // Find next open slot
             var distance_to_empty_slot = 1;
-            var current_ix = (bucket_ix + distance_to_empty_slot) % Capacity;
+            var current_ix = (bucket_ix + distance_to_empty_slot);
             HomeBucket* current_bucket = GetIndexPointer(current_ix);
 
-            while (distance_to_empty_slot < LookAheadLimit)
+            // Ensure we don't go out of bounds
+            var look_ahead_limit = Math.Min(LookAheadLimit, Capacity);
+            while (distance_to_empty_slot < look_ahead_limit)
             {
                 if (!current_bucket->IsOccupied)
                 {
@@ -106,12 +108,12 @@ namespace UnmanagedCore.Containers.Hashing
                 }
 
                 distance_to_empty_slot++;
-                current_ix = (bucket_ix + distance_to_empty_slot) % Capacity;
+                current_ix = (bucket_ix + distance_to_empty_slot);
                 current_bucket = GetIndexPointer(current_ix);
             }
             #endregion
 
-            if (distance_to_empty_slot < LookAheadLimit)
+            if (distance_to_empty_slot < look_ahead_limit)
             {
                 // Empty slot is IN the neighborhood
                 if (distance_to_empty_slot < NeighborHoodSize)
@@ -123,7 +125,8 @@ namespace UnmanagedCore.Containers.Hashing
                 
                 FindCLoserFreeBucket(ref current_bucket, ref distance_to_empty_slot);
             }
-
+            
+            
         }
 
         internal unsafe void FindCLoserFreeBucket
@@ -134,6 +137,7 @@ namespace UnmanagedCore.Containers.Hashing
         {
             HomeBucket* target_bucket = targetBucket - NeighborHoodSize - 1;
 
+            var capped_neighbor_hood_size = Math.Min(NeighborHoodSize, distance);
             for
             (
                 var hop_distance_ix = NeighborHoodSize - 1;
