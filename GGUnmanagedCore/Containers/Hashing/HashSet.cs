@@ -98,7 +98,7 @@ namespace UnmanagedCore.Containers.Hashing
             var current_ix = (bucket_ix + distance_to_empty_slot);
             HomeBucket* current_bucket = GetIndexPointer(current_ix);
 
-            // Ensure we don't go out of bounds
+            // Ensure we don't go out of bounds (the algorithm probably finishes or resizes before that is an issue -- but just in case)
             var look_ahead_limit = Math.Min(LookAheadLimit, Capacity);
             while (distance_to_empty_slot < look_ahead_limit)
             {
@@ -141,12 +141,13 @@ namespace UnmanagedCore.Containers.Hashing
             ref int distance
         )
         {
-            HomeBucket* target_bucket = targetBucket - NeighborHoodSize - 1;
+            // Given the usage of this function, there is no risk of out of bounds
+            HomeBucket* target_home_bucket = targetBucket - NeighborHoodSize - 1;
 
             var capped_neighbor_hood_size = Math.Min(NeighborHoodSize, distance);
             for
             (
-                var hop_distance_ix = NeighborHoodSize - 1;
+                var hop_distance_ix = capped_neighbor_hood_size - 1;
                 hop_distance_ix > 0;
                 hop_distance_ix--
             )
@@ -156,7 +157,7 @@ namespace UnmanagedCore.Containers.Hashing
                 // Loop through each bit up to the current hop distance
                 for (var bit_ix = 0; bit_ix < hop_distance_ix; bit_ix++)
                 {
-                    if (target_bucket->GetBit(bit_ix))
+                    if (target_home_bucket->GetIsBitOccupied(bit_ix))
                     {
                         open_bucket_ix = bit_ix;
                         break;
@@ -167,7 +168,7 @@ namespace UnmanagedCore.Containers.Hashing
                 if (open_bucket_ix != -1)
                 {
                     // Move the key to the open targetBucket
-                    var open_bucket = target_bucket + open_bucket_ix;
+                    var open_bucket = target_home_bucket + open_bucket_ix;
                     open_bucket->Key = targetBucket->Key;
                     open_bucket->SetBit(hop_distance_ix);
                     targetBucket->Key = default;
@@ -177,7 +178,7 @@ namespace UnmanagedCore.Containers.Hashing
                     return;
                 }
 
-                target_bucket++;
+                target_home_bucket++;
             }
             targetBucket = null;
             distance = 0;
@@ -186,10 +187,10 @@ namespace UnmanagedCore.Containers.Hashing
 
         public void Dispose()
         {
-            for (int bucket_ix = 0; bucket_ix < Capacity; bucket_ix++)
-            {
-                _storage[bucket_ix].Dispose();
-            }
+            // for (int bucket_ix = 0; bucket_ix < Capacity; bucket_ix++)
+            // {
+            //     _storage[bucket_ix].Dispose();
+            // }
 
             _storage.Dispose();
         }
@@ -222,7 +223,7 @@ namespace UnmanagedCore.Containers.Hashing
                 NeighborHood &= ~(1 << bitIndex);
             }
 
-            public bool GetBit
+            public bool GetIsBitOccupied
             (
                 int bitIndex
             )
