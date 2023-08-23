@@ -115,15 +115,20 @@ namespace UnmanagedCore.Containers.Hashing
 
             if (distance_to_empty_slot < look_ahead_limit)
             {
-                // Empty slot is IN the neighborhood
-                if (distance_to_empty_slot < NeighborHoodSize)
+                do
                 {
-                    home_bucket->SetBit(distance_to_empty_slot);
-                    current_bucket->Key = key;
-                    return;
-                }
-                
-                MoveBucketAway(ref current_bucket, ref distance_to_empty_slot);
+                    if (distance_to_empty_slot < NeighborHoodSize)
+                    {
+                        home_bucket->SetBit(distance_to_empty_slot);
+                        current_bucket->Key = key;
+                        return;
+                    }
+
+                    MoveBucketAway(ref current_bucket, ref distance_to_empty_slot);
+
+                } while ((IntPtr) current_bucket != IntPtr.Zero);
+
+
             }
 
         }
