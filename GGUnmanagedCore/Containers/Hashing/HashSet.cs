@@ -75,6 +75,17 @@ namespace UnmanagedCore.Containers.Hashing
         {
             return index % Capacity;
         }
+        
+        public void Add
+        (
+            TUnmanagedKey key
+        )
+        {
+            // if (Contains(key)) return;
+            // if (LoadFactor > 0.75f) Resize(Capacity * 2);
+            Insert(key);
+            Count++;
+        }
 
         private unsafe void Insert
         (
@@ -93,7 +104,7 @@ namespace UnmanagedCore.Containers.Hashing
             #endregion
 
             #region FindEmptySlot
-            // Find next open slot
+            // Find next open slot, we start at +1 because we already checked the home bucket
             var distance_to_empty_slot = 1;
             var current_ix = (bucket_ix + distance_to_empty_slot);
             HomeBucket* current_bucket = GetIndexPointer(current_ix);
@@ -106,7 +117,7 @@ namespace UnmanagedCore.Containers.Hashing
                 {
                     break;
                 }
-
+                
                 distance_to_empty_slot++;
                 current_ix = (bucket_ix + distance_to_empty_slot);
                 current_bucket = GetIndexPointer(current_ix);
@@ -127,10 +138,9 @@ namespace UnmanagedCore.Containers.Hashing
                     MoveBucketAway(ref current_bucket, ref distance_to_empty_slot);
 
                 } while ((IntPtr) current_bucket != IntPtr.Zero);
-
-
             }
-
+            
+            // TODO: RESIZE
         }
 
         /// <summary>
@@ -185,17 +195,8 @@ namespace UnmanagedCore.Containers.Hashing
 
                 target_home_bucket++;
             }
-            targetBucket = null;
+            targetBucket = (HomeBucket*) IntPtr.Zero;
             distance = 0;
-        }
-
-        internal unsafe void SwapBuckets
-        (
-            ref HomeBucket* bucketA,
-            ref HomeBucket* bucketB
-        )
-        {
-            
         }
 
         public void Dispose()
