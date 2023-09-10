@@ -27,13 +27,16 @@ namespace UnmanagedCore.Containers.Hashing
             int capacity
         )
         {
+            // ReSharper disable once InconsistentNaming
+            var _capacity = Math.Max(NeighborHoodSize, capacity);
+            
             // TODO: Calc capacity from input
             _storage = Allocation.Initialize
             (
                 HomeBucket.Default,
-                capacity
+                _capacity
             );
-            Capacity = capacity;
+            Capacity = _capacity;
             Count = 0;
             _keyHandler = new TUnmanagedKeyHandler();
         }

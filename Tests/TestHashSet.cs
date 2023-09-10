@@ -18,10 +18,13 @@ public class TestHashSet
     [TestMethod]
     public void TestTrivial()
     {
-        var set = new HashSet<int, IntHasher>(10);
+        var set = new HashSet<int, IntHasher>(33);
         
-        set.Add(2);
-        set.Add(3);
-        set.Add(2);
+        // Add numbers 0-31
+        for (int i = 0; i < 32; i++)
+        {
+            set.Add(i);
+        }
+        set.Add(0);
     }
 }
