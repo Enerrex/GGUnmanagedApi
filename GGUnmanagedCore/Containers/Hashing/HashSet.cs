@@ -3,42 +3,35 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnmanagedAPI;
 using UnmanagedAPI.Containers;
+using UnmanagedAPI.Extensions;
+using UnmanagedCore.Containers.Iterators;
 
 namespace UnmanagedCore.Containers.Hashing
 {
     // HashSet uses Hopscotch hashing
-    public struct HashSet<TUnmanagedKey, TUnmanagedKeyHandler>
-        where TUnmanagedKey : unmanaged, IEquatable<TUnmanagedKey>
-        where TUnmanagedKeyHandler : unmanaged, IHashProvider<TUnmanagedKey>
+    public unsafe struct HashSet<TUnmanagedKey, TUnmanagedKeyHandler>
+        where TUnmanagedKey : unmanaged, IEquatable<TUnmanagedKey> 
     {
-        private TUnmanagedKeyHandler _keyHandler;
-        internal float LoadFactor => Count / (float) Capacity;
-
-        private Allocation.Owner<HomeBucket> _storage;
+        private Allocation.Owner<LinkedList<Entry>> _storage;
 
         public int Count { get; private set; }
         public int Capacity { get; private set; }
-
-        internal static readonly int NeighborHoodSize = 32;
-        internal static readonly int LookAheadLimit = 256;
+        
+        private Configuration _configuration;
 
         public HashSet
         (
-            int capacity
+            int capacity,
+            Configuration? configuration=null
         )
         {
-            // ReSharper disable once InconsistentNaming
-            var _capacity = Math.Max(NeighborHoodSize, capacity);
-            
-            // TODO: Calc capacity from input
-            _storage = Allocation.Initialize
+            _storage = Allocation.Initialize<LinkedList<Entry>>
             (
-                HomeBucket.Default,
-                _capacity
+                capacity
             );
-            Capacity = _capacity;
+            Capacity = capacity;
+            _configuration = configuration ?? Configuration.Default;
             Count = 0;
-            _keyHandler = new TUnmanagedKeyHandler();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -47,12 +40,12 @@ namespace UnmanagedCore.Containers.Hashing
             TUnmanagedKey key
         )
         {
-            int hash = _keyHandler.GetHashCode(key);
+            int hash = key.GetHashCode();
             return WrapIndex(hash == int.MaxValue ? 0 : hash);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal unsafe HomeBucket* GetHomeBucketPointer
+        internal unsafe LinkedList<Entry>* GetHomeBucketPointer
         (
             TUnmanagedKey key
         )
@@ -62,7 +55,7 @@ namespace UnmanagedCore.Containers.Hashing
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal unsafe HomeBucket* GetIndexPointer
+        internal unsafe LinkedList<Entry>* GetIndexPointer
         (
             int index
         )
@@ -78,7 +71,18 @@ namespace UnmanagedCore.Containers.Hashing
         {
             return index % Capacity;
         }
-        
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool AreKeysEqual
+        (
+            TUnmanagedKey keyA,
+            TUnmanagedKey keyB
+        )
+        {
+            // return _keyHandler.AreEqual(keyA, keyB);
+            return keyA.Equals(keyB);
+        }
+
         public void Add
         (
             TUnmanagedKey key
@@ -95,111 +99,110 @@ namespace UnmanagedCore.Containers.Hashing
             TUnmanagedKey key
         )
         {
-            #region TryHomeBucket
             int bucket_ix = GetBucketIndex(key);
-            var home_bucket = GetIndexPointer(bucket_ix);
-            if (!home_bucket->IsOccupied)
+            var entry = new Entry
             {
-                home_bucket->Key = key;
-                home_bucket->SetOccupied();
+                Hash = bucket_ix,
+                Key = key
+            };
+            var home_bucket = GetIndexPointer(bucket_ix);
+            if (home_bucket->IsEmpty)
+            {
+                *home_bucket = new LinkedList<Entry>(entry);
                 return;
             }
-            #endregion
-
-            #region FindEmptySlot
-            // Find next open slot, we start at +1 because we already checked the home bucket
-            var distance_to_empty_slot = 1;
-            var current_ix = (bucket_ix + distance_to_empty_slot);
-            HomeBucket* current_bucket = GetIndexPointer(current_ix);
-
-            // Ensure we don't go out of bounds (the algorithm probably finishes or resizes before that is an issue -- but just in case)
-            var look_ahead_limit = Math.Min(LookAheadLimit, Capacity);
-            while (distance_to_empty_slot < look_ahead_limit)
-            {
-                if (!current_bucket->IsOccupied)
-                {
-                    break;
-                }
-                
-                distance_to_empty_slot++;
-                current_ix = (bucket_ix + distance_to_empty_slot);
-                current_bucket = GetIndexPointer(current_ix);
-            }
-            #endregion
-
-            if (distance_to_empty_slot < look_ahead_limit)
-            {
-                do
-                {
-                    if (distance_to_empty_slot < NeighborHoodSize)
-                    {
-                        home_bucket->SetBit(distance_to_empty_slot);
-                        current_bucket->Key = key;
-                        return;
-                    }
-
-                    MoveBucketAway(ref current_bucket, ref distance_to_empty_slot);
-
-                } while ((IntPtr) current_bucket != IntPtr.Zero);
-            }
             
-            // TODO: RESIZE
+            if (home_bucket->Count < _configuration.MaximumBucketSize)
+            {
+                home_bucket->AddNode(entry);
+                return;
+            }
+
+            // Resize
+            Resize();
         }
 
         /// <summary>
-        /// Attempts to move a bucket away from its home bucket (while still being in the neighborhood)
-        /// This will be called multiple times by Insert until we reach a limit
-        /// or the new key is added into its neighborhood
+        /// Removes a key from the list.
         /// </summary>
-        /// <param name="targetBucket"></param>
-        /// <param name="distance"></param>
-        internal unsafe void MoveBucketAway
+        /// <param name="key"></param>
+        /// <returns>True if a key is removed.</returns>
+        public bool Remove
         (
-            ref HomeBucket* targetBucket,
-            ref int distance
+            TUnmanagedKey key
         )
         {
-            // Given the usage of this function, there is no risk of out of bounds
-            HomeBucket* target_home_bucket = targetBucket - NeighborHoodSize - 1;
+            int bucket_ix = GetBucketIndex(key);
+            var home_bucket = GetIndexPointer(bucket_ix);
+            if (home_bucket->IsEmpty) return false;
 
-            var capped_neighbor_hood_size = Math.Min(NeighborHoodSize, distance);
-            for
-            (
-                var hop_distance_ix = capped_neighbor_hood_size - 1;
-                hop_distance_ix > 0;
-                hop_distance_ix--
-            )
+            var iterator = Iterator.Get(*home_bucket);
+            var (success, index) = iterator.MoveNext();
+            while (success)
             {
-                // Try to find an open bucket in the neighborhood
-                int open_bucket_ix = -1;
-                // Loop through each bit up to the current hop distance
-                for (var bit_ix = 0; bit_ix < hop_distance_ix; bit_ix++)
+                if (AreKeysEqual(key, iterator.Current.Key))
                 {
-                    if (target_home_bucket->IsBitOccupied(bit_ix))
-                    {
-                        open_bucket_ix = bit_ix;
-                        break;
-                    }
+                    home_bucket->RemoveAt(index);
+                    Count -= 1;
+                    return true;
                 }
-                
-                // There is an open bucket
-                if (open_bucket_ix != -1)
-                {
-                    // Move the key to the open targetBucket
-                    var open_bucket = target_home_bucket + open_bucket_ix;
-                    open_bucket->Key = targetBucket->Key;
-                    open_bucket->SetBit(hop_distance_ix);
-                    targetBucket->Key = default;
-                    targetBucket->ClearBit(open_bucket_ix);
-                    targetBucket = open_bucket;
-                    distance -= hop_distance_ix;
-                    return;
-                }
-
-                target_home_bucket++;
+                (success, index) = iterator.MoveNext();
             }
-            targetBucket = (HomeBucket*) IntPtr.Zero;
-            distance = 0;
+            return false;
+        }
+
+        public bool HasKey
+        (
+            TUnmanagedKey key
+        )
+        {
+            int bucket_ix = GetBucketIndex(key);
+            var home_bucket = GetIndexPointer(bucket_ix);
+            if (home_bucket->IsEmpty) return false;
+
+            var iterator = Iterator.Get(*home_bucket);
+            while (iterator.MoveNext().Success)
+            {
+                var entry = iterator.Current;
+                if (AreKeysEqual(key, entry.Key)) return true;
+            }
+
+            return false;
+        }
+
+        internal void Resize()
+        {
+            
+            var new_capacity = Capacity;
+            if (_configuration.ExpansionStrategy == Configuration.ExpansionStrategyEnum.Scalar)
+            {
+                new_capacity *= _configuration.ExpansionValue;
+            }
+            else
+            {
+                new_capacity += _configuration.ExpansionValue;
+            }
+            Capacity = new_capacity;
+            
+            var old_storage = _storage;
+            _storage = Allocation.Initialize<LinkedList<Entry>>
+            (
+                Capacity
+            );
+            
+            for (int bucket_ix = 0; bucket_ix < old_storage.Pointer->Count; bucket_ix++)
+            {
+                var bucket = GetIndexPointer(bucket_ix);
+                if (bucket->IsEmpty) continue;
+                var iterator = Iterator.Get(*bucket);
+                while (iterator.MoveNext().Success)
+                {
+                    var entry = iterator.Current;
+                    Insert(entry.Key);
+                }
+            }
+            
+            old_storage.DisposeWithUnderlying();
         }
 
         public void Dispose()
@@ -218,47 +221,24 @@ namespace UnmanagedCore.Containers.Hashing
             public int Hash;
         }
 
-        internal struct HomeBucket
+        public struct Configuration
         {
-            public bool IsOccupied => (NeighborHood & (1 << 0)) != 0;
-            public TUnmanagedKey Key;
-            public int NeighborHood;
-
-            public void SetBit
-            (
-                int bitIndex
-            )
+            public static Configuration Default => new Configuration
             {
-                NeighborHood |= 1 << bitIndex;
-            }
-            
-            public void ClearBit
-            (
-                int bitIndex
-            )
-            {
-                NeighborHood &= ~(1 << bitIndex);
-            }
-
-            public bool IsBitOccupied
-            (
-                int bitIndex
-            )
-            {
-                return (NeighborHood & (1 << bitIndex)) != 0;
-            }
-
-            public static readonly HomeBucket Default = new HomeBucket
-            {
-                Key = default,
-                // Default neighborhood is 0
-                NeighborHood = 0
+                MaximumBucketSize = 8,
+                ExpansionStrategy = ExpansionStrategyEnum.Scalar,
+                ExpansionValue = 2
             };
             
-            public void SetOccupied()
+            public enum ExpansionStrategyEnum
             {
-                NeighborHood |= 1 << 0;
+                Scalar,
+                Linear
             }
+            
+            public int MaximumBucketSize;
+            public ExpansionStrategyEnum ExpansionStrategy;
+            public int ExpansionValue;
         }
     }
 }

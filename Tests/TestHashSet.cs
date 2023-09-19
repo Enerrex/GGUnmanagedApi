@@ -13,6 +13,14 @@ public class TestHashSet
         {
             return item;
         }
+        public bool AreEqual
+        (
+            int a,
+            int b
+        )
+        {
+            return a == b;
+        }
     }
     
     [TestMethod]
@@ -26,5 +34,11 @@ public class TestHashSet
             set.Add(i);
         }
         set.Add(0);
+        
+        // Check that all numbers are in the set
+        for (int i = 0; i < 32; i++)
+        {
+            Assert.IsTrue(set.HasKey(i));
+        }
     }
 }

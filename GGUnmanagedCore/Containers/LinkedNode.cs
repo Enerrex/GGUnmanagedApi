@@ -8,7 +8,7 @@ namespace UnmanagedCore.Containers
     {
         public TUnmanaged Value;
 
-        public Allocation.Reference<LinkedNode<TUnmanaged>> Next => _next.ToReference<LinkedNode<TUnmanaged>>();
+        public Allocation.Reference<LinkedNode<TUnmanaged>>  Next => _next.ToReference<LinkedNode<TUnmanaged>>();
 
         private Allocation.Owner _next;
 
@@ -37,6 +37,21 @@ namespace UnmanagedCore.Containers
                 new LinkedNode<TUnmanaged>(value)
             );
             return _next.ToReference<LinkedNode<TUnmanaged>>();
+        }
+        
+        // This MUST be used in the context of a transfer of ownership
+        internal void SetNext
+        (
+            Allocation.Reference<LinkedNode<TUnmanaged>> next
+        )
+        {
+            _next = new Allocation.Owner(next.IntPtr);
+        }
+        
+        // Only used when replacing a node and we don't want to dispose of the next node
+        internal void ClearNext()
+        {
+            _next = Allocation.Owner.Null;
         }
         
         public static implicit operator TUnmanaged
